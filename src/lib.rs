@@ -69,24 +69,30 @@ pub fn convert(input: &[u8], conv: &Conversion, char_size: usize, order: &ByteOr
     let lf: Vec<u8> = build_char(LF, char_size, &order);
 
     let mut i = 0;
-    let mut output: Vec<u8> = Vec::new();
-    let mut last_char: Vec<u8> = Vec::with_capacity(char_size);
-    for _ in 0..char_size {
-        last_char.push(0x00);
-    }
+    let mut output: Vec<u8> = match conv {
+        // crude size guessing
+        Conversion::Dos2unix => {
+            let n = input.iter().filter(|x| **x == CR).count();
+            Vec::with_capacity(input.len() - (n * char_size))
+        },
+        Conversion::Unix2dos => {
+            let n = input.iter().filter(|x| **x == LF).count();
+            Vec::with_capacity(input.len() + (n * char_size))
+        }
+    };
+    let mut last_char: Option<&[u8]> = None;
+    let mut lookahead: Vec<u8> = Vec::with_capacity(char_size);
 
     while i < input.len() {
-        let mut buffer: Vec<u8> = Vec::with_capacity(char_size);
-        for x in i..i+char_size {
-            buffer.push(input[x]);
-        }
-
+        let (left, _) = input.split_at(i + char_size);
+        let (_, buffer) = left.split_at(i);
+        debug_assert_eq!(buffer.len(), char_size);
         match conv {
             Conversion::Dos2unix => {
-                if buffer == cr {
+                if cr == buffer {
                     if i + (char_size * 2) <= input.len()
                     {
-                        let mut lookahead: Vec<u8> = Vec::with_capacity(char_size);
+                        lookahead.clear();
                         for x in i + char_size..i + (char_size * 2) {
                             lookahead.push(input[x]);
                         }
@@ -94,32 +100,29 @@ pub fn convert(input: &[u8], conv: &Conversion, char_size: usize, order: &ByteOr
                             // drop it
                         }
                         else {
-                            last_char = buffer.clone();
-                            output.extend(buffer)
+                            output.extend(buffer);
                         }
                     }
                     else {
                         // this is the last character, let it be
-                        last_char = buffer.clone();
                         output.extend(buffer);
                     }
                 }
                 else {
-                    last_char = buffer.clone();
                     output.extend(buffer);
                 }
             },
             Conversion::Unix2dos => {
-                if buffer == lf {
+                if lf == buffer {
                     // check if we are not multiplying CRs here
-                    if last_char != cr {
-                        output.append(&mut cr.clone());
+                    if last_char.is_some() && cr != last_char.unwrap() {
+                        output.extend(cr.clone());
                     }
-                    last_char = buffer.clone();
+                    last_char = Some(buffer);
                     output.extend(buffer);
                 }
                 else {
-                    last_char = buffer.clone();
+                    last_char = Some(buffer);
                     output.extend(buffer);
                 }
             }
@@ -138,8 +141,8 @@ mod tests {
 
     #[test]
     fn basic_conversion() {
-        assert_eq!(convert("foo\r\nbar".as_bytes(), &Conversion::Dos2unix, 1,&ByteOrder::LittleEndiann).unwrap(), "foo\nbar".as_bytes());
-        assert_eq!(convert("foo\nbar".as_bytes(), &Conversion::Unix2dos, 1, &ByteOrder::LittleEndian).unwrap(), "foo\r\nbar".as_bytes());
+        assert_eq!(convert(b"foo\r\nbar", &Conversion::Dos2unix, 1,&ByteOrder::LittleEndian).unwrap(), b"foo\nbar");
+        assert_eq!(convert(b"foo\nbar", &Conversion::Unix2dos, 1, &ByteOrder::LittleEndian).unwrap(), b"foo\r\nbar");
     }
 
     #[test]
