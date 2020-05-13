@@ -47,10 +47,9 @@ pub fn convert(input: &[u8], conv: &Conversion, char_size: usize, order: &ByteOr
         }
     };
     let mut last_char: Option<&[u8]> = None;
-    let mut lookahead: Vec<u8> = Vec::with_capacity(char_size);
 
     while i < input.len() {
-        let (left, _) = input.split_at(i + char_size);
+        let (left, right) = input.split_at(i + char_size);
         let (_, buffer) = left.split_at(i);
         debug_assert_eq!(buffer.len(), char_size);
         match conv {
@@ -58,11 +57,8 @@ pub fn convert(input: &[u8], conv: &Conversion, char_size: usize, order: &ByteOr
                 if cr == buffer {
                     if i + (char_size * 2) <= input.len()
                     {
-                        lookahead.clear();
-                        for x in i + char_size..i + (char_size * 2) {
-                            lookahead.push(input[x]);
-                        }
-                        if lookahead == lf {
+                        let (lookahead, _) = right.split_at(char_size);
+                        if lf == lookahead {
                             // drop it
                         }
                         else {
