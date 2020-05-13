@@ -1,0 +1,19 @@
+[package]
+name = "llec"
+version = "0.1.0"
+authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2.33.1"
+content_inspector = "0.2.4"
+
+[lib]
+name = "llec"
+path = "src/lib.rs"
+
+[[bin]]
+name = "llec"
+path = "src/bin/main.rs"
