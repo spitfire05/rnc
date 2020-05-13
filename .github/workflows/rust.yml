@@ -14,16 +14,17 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
+        configuration: ["--release", ""]
 
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose ${{ matrix.configuration }}
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose 
     - name: Publish artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }}
+        name: ${{ matrix.os }}-${{ matrix.configuration }}
         path: target/*
       
