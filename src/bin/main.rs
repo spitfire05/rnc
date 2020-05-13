@@ -5,10 +5,10 @@ use std::fs;
 use std::io::{self, Read};
 use clap::{Arg, App};
 
-use llec::*;
+use rnc::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let matches = App::new("llec")
+    let matches = App::new("rnc")
         .version("0.1")
         .author("Michal Borejszo")
         .about("Converts line endings")

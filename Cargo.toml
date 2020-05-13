@@ -1,5 +1,5 @@
 [package]
-name = "llec"
+name = "rnc"
 version = "0.1.0"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
@@ -11,9 +11,9 @@ clap = "2.33.1"
 content_inspector = "0.2.4"
 
 [lib]
-name = "llec"
+name = "rnc"
 path = "src/lib.rs"
 
 [[bin]]
-name = "llec"
+name = "rnc"
 path = "src/bin/main.rs"
