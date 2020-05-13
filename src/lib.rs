@@ -157,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn erros() {
+    fn errors() {
         convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             &Conversion::Dos2unix, 3, &ByteOrder::LittleEndian).unwrap_err();
     }
