@@ -4,8 +4,6 @@ pool:
 jobs:
 - job: build
   displayName: Build & Test
-  pool:
-    vmmImage: ${{ matrix.vmImage }}
   strategy:
     matrix:
       linux:
@@ -14,6 +12,9 @@ jobs:
       windows:
         vmImage: 'windows-latest'
         osName: windows
+  pool:
+    vmmImage: $(vmImage)
+
   steps:
   - script: cargo build --release --verbose
     displayName: 'build'
@@ -30,5 +31,5 @@ jobs:
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: '$(Pipeline.Workspace)'
-      artifact: '${{ matrix.osName }}'
+      artifact: $(osName)
       publishLocation: 'pipeline'
