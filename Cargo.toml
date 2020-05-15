@@ -9,8 +9,10 @@ repository = "https://github.com/spitfire05/rnc"
 readme = "README.md"
 keywords = ["newline", "linebreak", "conversion"]
 categories = ["encoding", "command-line-utilities"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+include = [
+    "src/*",
+    "Cargo.toml"
+]
 
 [dependencies]
 clap = "2.33.1"
