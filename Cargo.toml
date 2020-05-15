@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
 license = "MIT"
+description = "Newline byte converter library"
+repository = "https://github.com/spitfire05/rnc"
+readme = "README.md"
+keywords = ["newline", "linebreak", "conversion"]
+categories = ["encoding", "command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
