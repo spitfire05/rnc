@@ -12,7 +12,7 @@ fn file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
         .arg("test/file/doesnt/exist");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("The system cannot find the path specified"));
+        .stderr(predicate::str::contains("kind: NotFound"));
 
     Ok(())
 }
