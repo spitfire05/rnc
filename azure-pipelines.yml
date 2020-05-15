@@ -30,6 +30,5 @@ jobs:
 
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '$(Pipeline.Workspace)'
       artifact: $(osName)
       publishLocation: 'pipeline'
