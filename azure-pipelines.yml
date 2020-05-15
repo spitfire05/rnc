@@ -1,0 +1,34 @@
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: build
+  displayName: Build & Test
+  pool:
+    vmmImage: ${{ matrix.vmImage }}
+  strategy:
+    matrix:
+      linux:
+        vmImage: 'ubuntu-latest'
+        osName: linux
+      windows:
+        vmImage: 'windows-latest'
+        osName: windows
+  steps:
+  - script: cargo build --release --verbose
+    displayName: 'build'
+
+  - script: cargo test --verbose
+    displayName: test
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: 'target/release'
+      Contents: '*'
+      TargetFolder: '$(build.artifactstagingdirectory)'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Pipeline.Workspace)'
+      artifact: '${{ matrix.osName }}'
+      publishLocation: 'pipeline'
