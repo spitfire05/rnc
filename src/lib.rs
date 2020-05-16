@@ -6,7 +6,7 @@ mod errors;
 mod converter;
 mod utils;
 
-pub use crate::converter::*;
+pub use crate::converter::Converter;
 pub use crate::utils::{ByteOrder, Conversion};
 
 #[cfg(test)]
