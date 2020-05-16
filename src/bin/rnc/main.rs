@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .arg(Arg::with_name("unix2dos")
             .long("unix2dos")
             .required_unless("dos2unix")
-            .conflicts_with("unix2dos")
+            .conflicts_with("dos2unix")
             .help("Convert Unix line endings to DOS (\\n -> \\r\\n)")
         )
         .arg(Arg::with_name("OUT")
