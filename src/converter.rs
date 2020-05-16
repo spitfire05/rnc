@@ -1,4 +1,4 @@
-use std::error;
+use std::{iter:: Peekable, error, slice::Chunks};
 
 use crate::utils::*;
 use crate::errors::*;
@@ -120,20 +120,19 @@ impl Converter {
         };
 
         match self.conversion {
-            Conversion::Dos2unix => self.dos2unix(input.chunks(self.char_size), &mut output, input),
+            Conversion::Dos2unix => self.dos2unix(input.chunks(self.char_size).peekable(), &mut output),
             Conversion::Unix2dos => self.unix2dos(input.chunks(self.char_size), &mut output),
         }
 
         Ok(output)
     }
 
-    fn dos2unix<'a, I>(&self, iter: I, output: &mut Vec<u8>, input: &[u8])
-    where
-        I: Iterator<Item = &'a [u8]>
+    fn dos2unix(&self, mut iter: Peekable<Chunks<u8>>, output: &mut Vec<u8>)
     {
-        for (i, current) in iter.enumerate() {
+        let empty: &[u8] = &[];
+        while let Some(current) = iter.next() {
             if self.cr == current {
-                let next = input.chunks(self.char_size).take(i + 2).last().unwrap_or(&[]);
+                let next = *iter.peek().unwrap_or(&empty);
                 if self.lf == next {
                     // drop it
                     continue;
