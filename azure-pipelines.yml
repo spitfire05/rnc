@@ -30,5 +30,6 @@ jobs:
 
   - task: PublishPipelineArtifact@1
     inputs:
+      targetPath: $(Build.ArtifactStagingDirectory)
       artifact: $(osName)
       publishLocation: 'pipeline'
