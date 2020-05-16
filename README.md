@@ -35,3 +35,11 @@ OPTIONS:
 ARGS:
     <FILE>...    Sets the input file to use. If not set, processes stdin to stdout
 ```
+
+## Conversion caveats
+`rnc` respects the valid newline character(s) of the input file. That means, if you use `--unix2dos` and there's a lone `\r` in the input buffer, it will *not* be converted to `\r\n`, as it is not valid newline sequence.
+
+In future there might be an option to override this behavior.
+
+## Performance
+One of the main developement goals, was to achieve conversion times not worse that the ones of `dos2unix`. On Linux host, the performance is roughly similar (about 0.1s difference when converting ~100MB file), while on windows `rnc` is twice as fast as `dos2unix` (version downloaded from https://sourceforge.net/projects/dos2unix/).
