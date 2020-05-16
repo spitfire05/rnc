@@ -10,7 +10,12 @@ The motivation to write this crate had two main pivot points:
 However, similarities to `dos2unix` are in functionality only, the CLI interface was *not* designed to be similar to the one of `dos2unix` in any way.
 
 ## Crate contents
-`rnc` create provides both library and CLI tool to convert the newline characters in buffers.
+`newline_converter` create provides both library (`newline_converter`) and CLI tool (`rnc`) to convert the newline characters in buffers.
+
+To build the CLI tool, enable the `cli` feature, for example:
+```
+cargo build --release --features cli
+```
 
 ## Tool usage
 ```

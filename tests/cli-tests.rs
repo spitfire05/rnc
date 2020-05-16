@@ -2,12 +2,17 @@ use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*; // Used for writing assertions
 use std::fs;
 use std::io::Write;
-use std::process::Command; // Run programs
 use tempfile::NamedTempFile;
 
 #[test]
 fn file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rnc")?;
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .features("cli")
+    .run()?;
+    let mut cmd = bin.command();
     cmd.arg("--dos2unix").arg("test/file/doesnt/exist");
     cmd.assert()
         .failure()
@@ -21,7 +26,13 @@ fn file_in_place_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
     write!(file, "foo\r\nbar\r\n")?;
 
-    let mut cmd = Command::cargo_bin("rnc")?;
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .features("cli")
+    .run()?;
+    let mut cmd = bin.command();
     cmd.arg("--dos2unix").arg(file.path());
     cmd.assert().success();
     let converted = fs::read(file)?;
@@ -35,7 +46,13 @@ fn file_in_place_unix2dos() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
     write!(file, "foo\nbar\n")?;
 
-    let mut cmd = Command::cargo_bin("rnc")?;
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .features("cli")
+    .run()?;
+    let mut cmd = bin.command();
     cmd.arg("--unix2dos").arg(file.path());
     cmd.assert().success();
     let converted = fs::read(file)?;
@@ -49,7 +66,13 @@ fn file_in_place_dos2unix_force_utf32() -> Result<(), Box<dyn std::error::Error>
     let mut file = NamedTempFile::new()?;
     write!(file, "fo\r\nba\r\n")?;
 
-    let mut cmd = Command::cargo_bin("rnc")?;
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .features("cli")
+    .run()?;
+    let mut cmd = bin.command();
     cmd.arg("--dos2unix")
         .arg("--encoding")
         .arg("utf32le")
@@ -67,7 +90,13 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     let file2 = NamedTempFile::new()?;
     write!(file, "foo\r\nbar\r\n")?;
 
-    let mut cmd = Command::cargo_bin("rnc")?;
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .features("cli")
+    .run()?;
+    let mut cmd = bin.command();
     cmd.arg("--dos2unix")
         .arg("--output")
         .arg(file2.path())
