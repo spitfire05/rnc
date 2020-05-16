@@ -16,7 +16,7 @@ jobs:
     vmmImage: $(vmImage)
 
   steps:
-  - script: cargo build --release --verbose
+  - script: cargo build --release --verbose --features cli
     displayName: 'build'
 
   - script: cargo test --verbose
