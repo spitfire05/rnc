@@ -107,7 +107,6 @@ impl Converter {
             }))
         }
 
-        let mut i = 0;
         let mut output: Vec<u8> = match self.conversion {
             // crude size guessing
             Conversion::Dos2unix => {
@@ -119,54 +118,42 @@ impl Converter {
                 Vec::with_capacity(input.len() + (n * self.char_size))
             }
         };
-        let mut last_char: Option<&[u8]> = None;
 
-        while i < input.len() {
-            let (left, right) = input.split_at(i + self.char_size);
-            let (_, buffer) = left.split_at(i);
-            debug_assert_eq!(buffer.len(), self.char_size);
-            match self.conversion {
-                Conversion::Dos2unix => {
-                    if self.cr == buffer {
-                        if i + (self.char_size * 2) <= input.len()
-                        {
-                            let (lookahead, _) = right.split_at(self.char_size);
-                            if self.lf == lookahead {
-                                // drop it
-                            }
-                            else {
-                                output.extend(buffer);
-                            }
-                        }
-                        else {
-                            // this is the last character, let it be
-                            output.extend(buffer);
-                        }
-                    }
-                    else {
-                        output.extend(buffer);
-                    }
-                },
-                Conversion::Unix2dos => {
-                    if self.lf == buffer {
-                        // check if we are not multiplying CRs here
-                        if last_char.is_some() && self.cr != last_char.unwrap() {
-                            output.extend(self.cr.clone());
-                        }
-                        last_char = Some(buffer);
-                        output.extend(buffer);
-                    }
-                    else {
-                        last_char = Some(buffer);
-                        output.extend(buffer);
-                    }
-                }
-            }
-
-            i += self.char_size;
+        match self.conversion {
+            Conversion::Dos2unix => self.dos2unix(input.chunks(self.char_size), &mut output, input),
+            Conversion::Unix2dos => self.unix2dos(input.chunks(self.char_size), &mut output),
         }
 
         Ok(output)
+    }
 
+    fn dos2unix<'a, I>(&self, iter: I, output: &mut Vec<u8>, input: &[u8])
+    where
+        I: Iterator<Item = &'a [u8]>
+    {
+        for (i, current) in iter.enumerate() {
+            if self.cr == current {
+                let next = input.chunks(self.char_size).take(i + 2).last().unwrap_or(&[]);
+                if self.lf == next {
+                    // drop it
+                    continue;
+                }
+            }
+            output.extend(current);
+        }
+    }
+
+    fn unix2dos<'a, I>(&self, iter: I, output: &mut Vec<u8>)
+    where
+        I: Iterator<Item = &'a [u8]>
+    {
+        let mut last_char: Option<&[u8]> = None;
+        for buffer in iter {
+            if self.lf == buffer && last_char.is_some() && self.cr != last_char.unwrap() {
+                output.extend(self.cr.clone());
+            }
+            last_char = Some(buffer);
+            output.extend(buffer);
+        }
     }
 }
