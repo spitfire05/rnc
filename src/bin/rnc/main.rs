@@ -125,17 +125,11 @@ fn process_stdio(
         force_char_size.unwrap_or(1),
         force_order.unwrap_or(ByteOrder::LittleEndian),
     );
-    // TODO: There are better ways to determine size of this buffer, in runtime..
-    let mut buffer: [u8; 1024] = [0; 1024];
-    loop {
-        let n = stdin.lock().read(&mut buffer)?;
-        if n == 0 {
-            break;
-        }
-        let converted = converter.convert(&buffer[0..n])?;
-        out.write_all(&converted)?;
-        out.flush()?;
-    }
+    let mut buffer = Vec::new();
+    stdin.lock().read_to_end(&mut buffer)?;
+    let converted = converter.convert(&buffer)?;
+    out.write_all(&converted)?;
+    out.flush()?;
 
     Ok(())
 }
