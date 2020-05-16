@@ -146,9 +146,7 @@ impl Converter {
         }
     }
 
-    fn unix2dos<'a, I>(&self, iter: I, output: &mut Vec<u8>)
-    where
-        I: Iterator<Item = &'a [u8]>,
+    fn unix2dos(&self, iter: Chunks<u8>, output: &mut Vec<u8>)
     {
         let mut last_char: Option<&[u8]> = None;
         for buffer in iter {
