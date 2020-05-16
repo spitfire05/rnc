@@ -1,7 +1,7 @@
-use std::{iter:: Peekable, error, slice::Chunks};
+use std::{error, iter::Peekable, slice::Chunks};
 
-use crate::utils::*;
 use crate::errors::*;
+use crate::utils::*;
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -22,8 +22,13 @@ impl Converter {
     pub fn new(conversion: Conversion, char_size: usize, byte_order: ByteOrder) -> Converter {
         let cr: Vec<u8> = build_char(CR, char_size, &byte_order);
         let lf: Vec<u8> = build_char(LF, char_size, &byte_order);
-        
-        Converter{char_size, conversion, cr, lf}
+
+        Converter {
+            char_size,
+            conversion,
+            cr,
+            lf,
+        }
     }
 
     /// Returns UTF8-configured Converter
@@ -87,7 +92,7 @@ impl Converter {
     }
 
     /// Returns a new buffer with converted newline
-    /// 
+    ///
     ///
     /// # Examples
     /// ```
@@ -104,7 +109,7 @@ impl Converter {
             return Err(Box::new(WrongInputLen {
                 input_len: input.len(),
                 char_size: self.char_size,
-            }))
+            }));
         }
 
         let mut output: Vec<u8> = match self.conversion {
@@ -112,7 +117,7 @@ impl Converter {
             Conversion::Dos2unix => {
                 let n = input.iter().filter(|x| **x == CR).count();
                 Vec::with_capacity(input.len() - (n * self.char_size))
-            },
+            }
             Conversion::Unix2dos => {
                 let n = input.iter().filter(|x| **x == LF).count();
                 Vec::with_capacity(input.len() + (n * self.char_size))
@@ -127,8 +132,7 @@ impl Converter {
         Ok(output)
     }
 
-    fn dos2unix(&self, mut iter: Peekable<Chunks<u8>>, output: &mut Vec<u8>)
-    {
+    fn dos2unix(&self, mut iter: Peekable<Chunks<u8>>, output: &mut Vec<u8>) {
         let empty: &[u8] = &[];
         while let Some(current) = iter.next() {
             if self.cr == current {
@@ -144,7 +148,7 @@ impl Converter {
 
     fn unix2dos<'a, I>(&self, iter: I, output: &mut Vec<u8>)
     where
-        I: Iterator<Item = &'a [u8]>
+        I: Iterator<Item = &'a [u8]>,
     {
         let mut last_char: Option<&[u8]> = None;
         for buffer in iter {

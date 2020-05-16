@@ -27,8 +27,8 @@ pub fn build_char(c: u8, char_size: usize, order: &ByteOrder) -> Vec<u8> {
     match order {
         ByteOrder::LittleEndian => {
             buff.reverse();
-        },
-        ByteOrder::BigEndian => {},
+        }
+        ByteOrder::BigEndian => {}
     }
 
     buff

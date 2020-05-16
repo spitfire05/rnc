@@ -1,9 +1,9 @@
+use clap::{App, Arg};
+use content_inspector::{inspect, ContentType};
 use std::error::Error;
-use std::io::Write;
-use content_inspector::{ContentType, inspect};
 use std::fs;
+use std::io::Write;
 use std::io::{self, Read};
-use clap::{Arg, App};
 
 use rnc::*;
 
@@ -53,32 +53,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     let conv: Conversion;
     if matches.is_present("dos2unix") {
         conv = Conversion::Dos2unix;
-    }
-    else if matches.is_present("unix2dos") {
+    } else if matches.is_present("unix2dos") {
         conv = Conversion::Unix2dos;
-    }
-    else {
+    } else {
         unreachable!()
     }
 
-    if matches.is_present("OUT") && matches.is_present("FILE") && matches.values_of("FILE").unwrap().len() > 1 {
-        return Err(Box::new(io::Error::new(io::ErrorKind::InvalidInput, "OUT cannot be used with multiple FILEs")));
+    if matches.is_present("OUT")
+        && matches.is_present("FILE")
+        && matches.values_of("FILE").unwrap().len() > 1
+    {
+        return Err(Box::new(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "OUT cannot be used with multiple FILEs",
+        )));
     }
 
     let output = matches.value_of("OUT");
 
     let (force_char_size, force_order) = match matches.value_of("ENCODING") {
         None => (None, None),
-        Some(x) => {
-            match x {
-                "utf8" => (Some(1), Some(ByteOrder::LittleEndian)),
-                "utf16le" => (Some(2), Some(ByteOrder::LittleEndian)),
-                "utf16be" => (Some(2), Some(ByteOrder::BigEndian)),
-                "utf32le" => (Some(4), Some(ByteOrder::LittleEndian)),
-                "utf32be" => (Some(4), Some(ByteOrder::BigEndian)),
-                _ => unreachable!()
-            }
-        }
+        Some(x) => match x {
+            "utf8" => (Some(1), Some(ByteOrder::LittleEndian)),
+            "utf16le" => (Some(2), Some(ByteOrder::LittleEndian)),
+            "utf16be" => (Some(2), Some(ByteOrder::BigEndian)),
+            "utf32le" => (Some(4), Some(ByteOrder::LittleEndian)),
+            "utf32be" => (Some(4), Some(ByteOrder::BigEndian)),
+            _ => unreachable!(),
+        },
     };
 
     if let Some(filenames) = matches.values_of("FILE") {
@@ -88,35 +90,41 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             let o = match output {
                 Some(o) => o,
-                None => f
+                None => f,
             };
             let r = process_file(f, o, conv, force_char_size, force_order)?;
             if verbose {
                 let FileProcessingResult(processed, read, write) = r;
-                if processed
-                {
+                if processed {
                     println!("{}: {} bytes read. {} bytes written", f, read, write);
-                }
-                else {
+                } else {
                     println!("{}: Skipped binary file", f);
                 }
             }
         }
-    }
-    else {
+    } else {
         process_stdio(conv, output, force_char_size, force_order)?;
     }
 
     Ok(())
 }
 
-fn process_stdio(conv: Conversion, outfile: Option<&str>, force_char_size: Option<usize>, force_order: Option<ByteOrder>) -> Result<(), Box<dyn Error>> {
+fn process_stdio(
+    conv: Conversion,
+    outfile: Option<&str>,
+    force_char_size: Option<usize>,
+    force_order: Option<ByteOrder>,
+) -> Result<(), Box<dyn Error>> {
     let stdin = io::stdin();
     let mut out: Box<dyn Write> = match outfile {
         Some(f) => Box::new(fs::File::create(f)?),
-        None => Box::new(io::stdout())
+        None => Box::new(io::stdout()),
     };
-    let converter = Converter::new(conv, force_char_size.unwrap_or(1), force_order.unwrap_or(ByteOrder::LittleEndian));
+    let converter = Converter::new(
+        conv,
+        force_char_size.unwrap_or(1),
+        force_order.unwrap_or(ByteOrder::LittleEndian),
+    );
     // TODO: There are better ways to determine size of this buffer, in runtime..
     let mut buffer: [u8; 1024] = [0; 1024];
     loop {
@@ -132,17 +140,43 @@ fn process_stdio(conv: Conversion, outfile: Option<&str>, force_char_size: Optio
     Ok(())
 }
 
-struct FileProcessingResult (bool, usize, usize);
+struct FileProcessingResult(bool, usize, usize);
 
-fn process_file(filename: &str, out: &str, conv: Conversion, force_char_size: Option<usize>, force_order: Option<ByteOrder>) -> Result<FileProcessingResult, Box<dyn Error>> {
+fn process_file(
+    filename: &str,
+    out: &str,
+    conv: Conversion,
+    force_char_size: Option<usize>,
+    force_order: Option<ByteOrder>,
+) -> Result<FileProcessingResult, Box<dyn Error>> {
     let content = fs::read(filename)?;
 
     let converter = match inspect(&content) {
-        ContentType::UTF_8 | ContentType::UTF_8_BOM => Some(Converter::new(conv, force_char_size.unwrap_or(1), force_order.unwrap_or(ByteOrder::BigEndian))),
-        ContentType::UTF_16LE => Some(Converter::new(conv, force_char_size.unwrap_or(2), force_order.unwrap_or(ByteOrder::LittleEndian))),
-        ContentType::UTF_16BE => Some(Converter::new(conv, force_char_size.unwrap_or(2), force_order.unwrap_or(ByteOrder::BigEndian))),
-        ContentType::UTF_32LE => Some(Converter::new(conv, force_char_size.unwrap_or(4), force_order.unwrap_or(ByteOrder::LittleEndian))),
-        ContentType::UTF_32BE => Some(Converter::new(conv, force_char_size.unwrap_or(4), force_order.unwrap_or(ByteOrder::BigEndian))),
+        ContentType::UTF_8 | ContentType::UTF_8_BOM => Some(Converter::new(
+            conv,
+            force_char_size.unwrap_or(1),
+            force_order.unwrap_or(ByteOrder::BigEndian),
+        )),
+        ContentType::UTF_16LE => Some(Converter::new(
+            conv,
+            force_char_size.unwrap_or(2),
+            force_order.unwrap_or(ByteOrder::LittleEndian),
+        )),
+        ContentType::UTF_16BE => Some(Converter::new(
+            conv,
+            force_char_size.unwrap_or(2),
+            force_order.unwrap_or(ByteOrder::BigEndian),
+        )),
+        ContentType::UTF_32LE => Some(Converter::new(
+            conv,
+            force_char_size.unwrap_or(4),
+            force_order.unwrap_or(ByteOrder::LittleEndian),
+        )),
+        ContentType::UTF_32BE => Some(Converter::new(
+            conv,
+            force_char_size.unwrap_or(4),
+            force_order.unwrap_or(ByteOrder::BigEndian),
+        )),
         ContentType::BINARY => None,
     };
 
@@ -151,9 +185,7 @@ fn process_file(filename: &str, out: &str, conv: Conversion, force_char_size: Op
         fs::write(out, &converted)?;
 
         Ok(FileProcessingResult(true, content.len(), converted.len()))
-    }
-    else {
+    } else {
         Ok(FileProcessingResult(false, content.len(), 0))
     }
-}   
-    
+}

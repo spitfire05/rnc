@@ -1,15 +1,14 @@
-use std::process::Command;  // Run programs
 use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*; // Used for writing assertions
-use tempfile::NamedTempFile;
-use std::io::Write;
 use std::fs;
+use std::io::Write;
+use std::process::Command; // Run programs
+use tempfile::NamedTempFile;
 
 #[test]
 fn file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rnc")?;
-    cmd.arg("--dos2unix")
-        .arg("test/file/doesnt/exist");
+    cmd.arg("--dos2unix").arg("test/file/doesnt/exist");
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("kind: NotFound"));
@@ -23,10 +22,8 @@ fn file_in_place_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     write!(file, "foo\r\nbar\r\n")?;
 
     let mut cmd = Command::cargo_bin("rnc")?;
-    cmd.arg("--dos2unix")
-        .arg(file.path());
-    cmd.assert()
-        .success();
+    cmd.arg("--dos2unix").arg(file.path());
+    cmd.assert().success();
     let converted = fs::read(file)?;
     assert_eq!(converted, b"foo\nbar\n");
 
@@ -39,10 +36,8 @@ fn file_in_place_unix2dos() -> Result<(), Box<dyn std::error::Error>> {
     write!(file, "foo\nbar\n")?;
 
     let mut cmd = Command::cargo_bin("rnc")?;
-    cmd.arg("--unix2dos")
-        .arg(file.path());
-    cmd.assert()
-        .success();
+    cmd.arg("--unix2dos").arg(file.path());
+    cmd.assert().success();
     let converted = fs::read(file)?;
     assert_eq!(converted, b"foo\r\nbar\r\n");
 
@@ -59,8 +54,7 @@ fn file_in_place_dos2unix_force_utf32() -> Result<(), Box<dyn std::error::Error>
         .arg("--encoding")
         .arg("utf32le")
         .arg(file.path());
-    cmd.assert()
-        .success();
+    cmd.assert().success();
     let converted = fs::read(file)?;
     assert_eq!(converted, b"fo\r\nba\r\n");
 
@@ -78,8 +72,7 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
         .arg("--output")
         .arg(file2.path())
         .arg(file.path());
-    cmd.assert()
-        .success();
+    cmd.assert().success();
     let converted = fs::read(file2)?;
     assert_eq!(converted, b"foo\nbar\n");
 
