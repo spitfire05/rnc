@@ -35,7 +35,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::utf8(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"foo\r\nbar").unwrap(), b"foo\nbar");
     /// ```
@@ -47,7 +47,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::utf16le(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"\0f\0o\0o\0\r\0\n\0b\0a\0r").unwrap(), b"\0f\0o\0o\0\n\0b\0a\0r");
     /// ```
@@ -59,7 +59,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::utf16be(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"f\0o\0o\0\r\0\n\0b\0a\0r\0").unwrap(), b"f\0o\0o\0\n\0b\0a\0r\0");
     /// ```
@@ -71,7 +71,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::utf32le(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"\0\0\0f\0\0\0o\0\0\0o\0\0\0\r\0\0\0\n\0\0\0b\0\0\0a\0\0\0r").unwrap(), b"\0\0\0f\0\0\0o\0\0\0o\0\0\0\n\0\0\0b\0\0\0a\0\0\0r");
     /// ```
@@ -83,7 +83,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::utf32be(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"f\0\0\0o\0\0\0o\0\0\0\r\0\0\0\n\0\0\0b\0\0\0a\0\0\0r\0\0\0").unwrap(), b"f\0\0\0o\0\0\0o\0\0\0\n\0\0\0b\0\0\0a\0\0\0r\0\0\0");
     /// ```
@@ -96,7 +96,7 @@ impl Converter {
     ///
     /// # Examples
     /// ```
-    /// use rnc::*;
+    /// use newline_converter::*;
     /// let converter = Converter::new(Conversion::Dos2unix, 1, ByteOrder::LittleEndian);
     /// assert_eq!(converter.convert(b"foo\r\nbar").unwrap(), b"foo\nbar");
     /// ```

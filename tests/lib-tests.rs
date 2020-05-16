@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rnc::*;
+    use newline_converter::*;
 
     #[test]
     fn basic_conversion() {

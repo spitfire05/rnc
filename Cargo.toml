@@ -1,5 +1,5 @@
 [package]
-name = "rnc"
+name = "newline_converter"
 version = "0.1.0"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"

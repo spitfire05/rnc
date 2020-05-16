@@ -5,7 +5,7 @@ use std::fs;
 use std::io::Write;
 use std::io::{self, Read};
 
-use rnc::*;
+use newline_converter::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("rnc")
