@@ -10,8 +10,7 @@ use rnc::*;
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("rnc")
         .version("0.1")
-        .author("Michal Borejszo")
-        .about("Converts line endings")
+        .about("Neline byte(s) converter")
         .arg(Arg::with_name("FILE")
             .help("Sets the input file to use. If not set, processes stdin to stdout")
             .takes_value(true)
