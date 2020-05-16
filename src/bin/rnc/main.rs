@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     if matches.is_present("OUT") && matches.is_present("FILE") && matches.values_of("FILE").unwrap().len() > 1 {
-        return Err(Box::new(io::Error::new(io::ErrorKind::InvalidInput, "OUT cannot be used with multipple FILEs")));
+        return Err(Box::new(io::Error::new(io::ErrorKind::InvalidInput, "OUT cannot be used with multiple FILEs")));
     }
 
     let output = matches.value_of("OUT");
