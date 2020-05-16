@@ -13,26 +13,31 @@ mod tests {
 
     #[test]
     fn basic_conversion() {
-        assert_eq!(convert(b"foo\r\nbar", &Conversion::Dos2unix, 1,&ByteOrder::LittleEndian).unwrap(), b"foo\nbar");
-        assert_eq!(convert(b"foo\nbar", &Conversion::Unix2dos, 1, &ByteOrder::LittleEndian).unwrap(), b"foo\r\nbar");
+        let dos2unix = Converter::utf8(Conversion::Dos2unix);
+        let unix2dos = Converter::utf8(Conversion::Unix2dos);
+        assert_eq!(dos2unix.convert(b"foo\r\nbar").unwrap(), b"foo\nbar");
+        assert_eq!(unix2dos.convert(b"foo\nbar").unwrap(), b"foo\r\nbar");
     }
 
     #[test]
     fn advanced() {
-        assert_eq!(convert("foo\r\nbar".as_bytes(), &Conversion::Unix2dos, 1, &ByteOrder::LittleEndian).unwrap(), "foo\r\nbar".as_bytes());
-        assert_eq!(convert("foo\r\nbar".as_bytes(), &Conversion::Unix2dos, 1, &ByteOrder::LittleEndian).unwrap(), "foo\r\nbar".as_bytes());
-        assert_eq!(convert("foo\rbar\r\n".as_bytes(), &Conversion::Dos2unix, 1, &ByteOrder::LittleEndian).unwrap(), "foo\rbar\n".as_bytes());
+        let dos2unix = Converter::utf8(Conversion::Dos2unix);
+        let unix2dos = Converter::utf8(Conversion::Unix2dos);
+        assert_eq!(unix2dos.convert(b"\rfoo\r\nbar\n").unwrap(), b"\rfoo\r\nbar\r\n");
+        assert_eq!(dos2unix.convert(b"\nfoo\rbar\r\n").unwrap(), b"\nfoo\rbar\n");
         let utf16_le_dos: [u8; 8] = [0x00, 0x42, 0x00, 0x0D, 0x00, 0x0A, 0x00, 0x41];
         let utf16_le_unix: [u8; 6] = [0x00, 0x42, 0x00, 0x0A, 0x00, 0x41];
-        assert_eq!(convert(&utf16_le_dos, &Conversion::Unix2dos, 2, &ByteOrder::LittleEndian).unwrap(), utf16_le_dos);
-        assert_eq!(convert(&utf16_le_dos, &Conversion::Dos2unix, 2, &ByteOrder::LittleEndian).unwrap(), utf16_le_unix);
+        let dos2unix_utf16le = Converter::utf16le(Conversion::Dos2unix);
+        let unix2dos_utf16le = Converter::utf16le(Conversion::Unix2dos);
+        assert_eq!(unix2dos_utf16le.convert(&utf16_le_dos).unwrap(), utf16_le_dos);
+        assert_eq!(dos2unix_utf16le.convert(&utf16_le_dos).unwrap(), utf16_le_unix);
     }
 
     #[test]
     fn errors() {
-        convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            &Conversion::Dos2unix, 3, &ByteOrder::LittleEndian).unwrap_err();
-        convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            &Conversion::Dos2unix, 0, &ByteOrder::LittleEndian).unwrap_err();
+        let converter_3 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
+        let converter_0 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
+        converter_3.convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]).unwrap_err();
+        converter_0.convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]).unwrap_err();
     }
 }

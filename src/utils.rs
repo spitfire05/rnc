@@ -1,6 +1,7 @@
 pub const LF: u8 = 0xA;
 pub const CR: u8 = 0xD;
 /// Defines conversion operation
+#[derive(Copy, Clone)]
 pub enum Conversion {
     /// Replaces `\r\n` with `\n`
     Dos2unix,
@@ -9,6 +10,7 @@ pub enum Conversion {
 }
 
 /// Represents the byte ordering in processed data.
+#[derive(Copy, Clone)]
 pub enum ByteOrder {
     BigEndian,
     LittleEndian,
