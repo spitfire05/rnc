@@ -117,6 +117,7 @@ fn process_stdio(conv: Conversion, outfile: Option<&str>, force_char_size: Optio
         None => Box::new(io::stdout())
     };
     let converter = Converter::new(conv, force_char_size.unwrap_or(1), force_order.unwrap_or(ByteOrder::LittleEndian));
+    // TODO: There are better ways to determine size of this buffer, in runtime..
     let mut buffer: [u8; 1024] = [0; 1024];
     loop {
         let n = stdin.lock().read(&mut buffer)?;
