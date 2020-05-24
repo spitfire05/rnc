@@ -88,10 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             if verbose {
                 println!("Processing {} ", f);
             }
-            let o = match output {
-                Some(o) => o,
-                None => f,
-            };
+            let o = output.unwrap_or(f);
             let r = process_file(f, o, conv, force_char_size, force_order)?;
             if verbose {
                 let FileProcessingResult(processed, read, write) = r;
