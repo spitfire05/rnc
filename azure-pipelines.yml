@@ -16,10 +16,10 @@ jobs:
     vmmImage: $(vmImage)
 
   steps:
-  - script: cargo build --release --verbose --features cli
+  - script: cargo build --release --verbose
     displayName: 'build'
 
-  - script: cargo test --verbose
+  - script: cargo test --verbose --workspace
     displayName: test
 
   - task: CopyFiles@2
