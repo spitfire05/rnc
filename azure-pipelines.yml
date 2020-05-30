@@ -23,7 +23,7 @@ jobs:
   - task: CopyFiles@2
     inputs:
       SourceFolder: 'target/release'
-      Contents: '*'
+      Contents: 'rnc*'
       TargetFolder: '$(build.artifactstagingdirectory)'
 
   - task: PublishPipelineArtifact@1
