@@ -174,16 +174,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
 
 [[package]]
-name = "newline_converter"
+name = "newline-converter"
 version = "0.1.0"
-dependencies = [
- "assert_cmd",
- "clap",
- "content_inspector",
- "escargot 0.5.0",
- "predicates",
- "tempfile",
-]
 
 [[package]]
 name = "normalize-line-endings"
@@ -325,6 +317,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a83fa3702a688b9359eccba92d153ac33fd2e8462f9e0e3fdf155239ea7792e"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "rust-newline-converter-cli"
+version = "0.1.0"
+dependencies = [
+ "assert_cmd",
+ "clap",
+ "content_inspector",
+ "escargot 0.5.0",
+ "newline-converter",
+ "predicates",
+ "tempfile",
 ]
 
 [[package]]

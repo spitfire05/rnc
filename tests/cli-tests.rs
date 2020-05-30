@@ -10,7 +10,6 @@ fn file_doesnt_exist() -> Result<(), Box<dyn std::error::Error>> {
     .bin("rnc")
     .current_release()
     .current_target()
-    .features("cli")
     .run()?;
     let mut cmd = bin.command();
     cmd.arg("--dos2unix").arg("test/file/doesnt/exist");
@@ -30,7 +29,6 @@ fn file_in_place_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     .bin("rnc")
     .current_release()
     .current_target()
-    .features("cli")
     .run()?;
     let mut cmd = bin.command();
     cmd.arg("--dos2unix").arg(file.path());
@@ -50,7 +48,6 @@ fn file_in_place_unix2dos() -> Result<(), Box<dyn std::error::Error>> {
     .bin("rnc")
     .current_release()
     .current_target()
-    .features("cli")
     .run()?;
     let mut cmd = bin.command();
     cmd.arg("--unix2dos").arg(file.path());
@@ -70,7 +67,6 @@ fn file_in_place_dos2unix_force_utf32() -> Result<(), Box<dyn std::error::Error>
     .bin("rnc")
     .current_release()
     .current_target()
-    .features("cli")
     .run()?;
     let mut cmd = bin.command();
     cmd.arg("--dos2unix")
@@ -94,7 +90,6 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     .bin("rnc")
     .current_release()
     .current_target()
-    .features("cli")
     .run()?;
     let mut cmd = bin.command();
     cmd.arg("--dos2unix")
@@ -104,6 +99,43 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success();
     let converted = fs::read(file2)?;
     assert_eq!(converted, b"foo\nbar\n");
+
+    Ok(())
+}
+
+#[test]
+fn binary_force() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = NamedTempFile::new()?;
+    write!(file, "\0\0\r\n\0\0\r\n")?;
+
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .run()?;
+    let mut cmd = bin.command();
+    cmd.arg("--dos2unix").arg(file.path());
+    cmd.arg("--force");
+    cmd.arg("--encoding");
+    cmd.arg("utf8");
+    cmd.assert().success();
+    let converted = fs::read(file)?;
+    assert_eq!(converted, b"\0\0\n\0\0\n");
+
+    Ok(())
+}
+
+#[test]
+fn binary_force_args_validation() -> Result<(), Box<dyn std::error::Error>> {
+    let bin = escargot::CargoBuild::new()
+    .bin("rnc")
+    .current_release()
+    .current_target()
+    .run()?;
+    let mut cmd = bin.command();
+    cmd.arg("--dos2unix");
+    cmd.arg("--force");
+    cmd.assert().failure();
 
     Ok(())
 }

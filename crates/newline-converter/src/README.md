@@ -1,0 +1,2 @@
+# newline-converter
+`newline-converter` is a simple library used for converting the newline bytes in buffers between Windows `\r\n` and Unix `\n` style. It mainly serves as a backend for "Rust Newline converter" CLI tool.

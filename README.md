@@ -1,5 +1,5 @@
 # rnc
-Rust Newline Converter - a "dos2unix lookalike" written in Rust
+Rust Newline Converter (`rnc`) - a "dos2unix lookalike" written in Rust
 
 [![Build Status](https://dev.azure.com/michal0805/rnc/_apis/build/status/spitfire05.rnc?branchName=master)](https://dev.azure.com/michal0805/rnc/_build/latest?definitionId=1&branchName=master)
 
@@ -9,28 +9,21 @@ The motivation to write this crate had two main pivot points:
 
 However, similarities to `dos2unix` are in functionality only, the CLI interface was *not* designed to be similar to the one of `dos2unix` in any way.
 
-## Crate contents
-`newline_converter` create provides both library (`newline_converter`) and CLI tool (`rnc`) to convert the newline characters in buffers.
-
-To build the CLI tool, enable the `cli` feature, for example:
-```
-cargo build --release --features cli
-```
-
 ## Tool usage
 ```
 rnc 0.1
-Converts line endings
+Neline byte(s) converter
 
 USAGE:
     rnc.exe [FLAGS] [OPTIONS] --dos2unix --unix2dos [FILE]...
 
 FLAGS:
+    -f, --force       Don't omit binary files
         --dos2unix    Convert DOS line endings to Unix (\r\n -> \n)
     -h, --help        Prints help information
         --unix2dos    Convert Unix line endings to DOS (\n -> \r\n)
     -V, --version     Prints version information
-    -v, --verbose     Be verbose about the operations
+    -v, --verbose     Print status messages to stdout (no effect if stdout is the conversion output)
 
 OPTIONS:
     -e, --encoding <ENCODING>    Treat input as ENCODING (default is utf8 for stdin, and an educated guess for files)

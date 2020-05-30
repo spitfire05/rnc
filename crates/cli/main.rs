@@ -25,7 +25,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         .arg(Arg::with_name("unix2dos")
             .long("unix2dos")
             .required_unless("dos2unix")
-            .conflicts_with("dos2unix")
             .help("Convert Unix line endings to DOS (\\n -> \\r\\n)")
         )
         .arg(Arg::with_name("OUT")
@@ -40,6 +39,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             .help("Treat input as ENCODING (default is utf8 for stdin, and an educated guess for files)")
             .takes_value(true)
             .possible_values(&["utf8", "utf16le", "utf16be", "utf32le", "utf32be"])
+        )
+        .arg(Arg::with_name("FORCE")
+            .short("f")
+            .long("force")
+            .help("Don't omit binary files")
+            .requires("ENCODING")
         )
         .arg(Arg::with_name("verbose")
             .short("v")
@@ -89,7 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 println!("Processing {} ", f);
             }
             let o = output.unwrap_or(f);
-            let r = process_file(f, o, conv, force_char_size, force_order)?;
+            let r = process_file(f, o, conv, force_char_size, force_order, matches.is_present("FORCE"))?;
             if verbose {
                 let FileProcessingResult(processed, read, write) = r;
                 if processed {
@@ -139,6 +144,7 @@ fn process_file(
     conv: Conversion,
     force_char_size: Option<usize>,
     force_order: Option<ByteOrder>,
+    force_binary: bool,
 ) -> Result<FileProcessingResult, Box<dyn Error>> {
     let content = fs::read(filename)?;
 
@@ -168,7 +174,14 @@ fn process_file(
             force_char_size.unwrap_or(4),
             force_order.unwrap_or(ByteOrder::BigEndian),
         )),
-        ContentType::BINARY => None,
+        ContentType::BINARY => {
+            if force_binary {
+                Some(Converter::new(conv, force_char_size.unwrap(), force_order.unwrap()))
+            }
+            else {
+                None
+            }
+        },
     };
 
     if let Some(c) = converter {

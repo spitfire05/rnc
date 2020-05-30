@@ -1,5 +1,5 @@
 [package]
-name = "newline_converter"
+name = "rust-newline-converter-cli"
 version = "0.1.0"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
@@ -10,20 +10,23 @@ readme = "README.md"
 keywords = ["newline", "linebreak", "conversion"]
 categories = ["encoding", "command-line-utilities"]
 include = [
-    "src/*",
+    "crates/cli/*",
     "Cargo.toml"
 ]
 
 [[bin]]
 name = "rnc"
-required-features = ["cli"]
+path = "crates/cli/main.rs"
 
-[features]
-cli = ["clap", "content_inspector"]
+[workspace]
+members = [
+  "crates/newline-converter",
+]
 
 [dependencies]
-clap = { version = "2.33.1", optional = true }
-content_inspector = { version = "0.2.4", optional = true }
+newline-converter = { version = "0.1.0", path = "crates/newline-converter" }
+clap = "2.33.1"
+content_inspector = "0.2.4"
 
 [dev-dependencies]
 assert_cmd = "0.10"
