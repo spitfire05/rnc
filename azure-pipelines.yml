@@ -6,28 +6,37 @@ jobs:
       linux:
         vmImage: 'ubuntu-latest'
         osName: linux
-      windows:
+        arch: x64
+        target: x86_64-unknown-linux-gnu
+      windows64:
         vmImage: 'windows-latest'
         osName: windows
+        arch: x64
+        target: x86_64-pc-windows-msvc
+      windows32:
+        vmImage: 'windows-latest'
+        osName: windows
+        arch: x86
+        target: i686-pc-windows-msvc
   
   pool:
     vmImage: $(vmImage)
 
   steps:
-  - script: cargo build --release --verbose
+  - script: cargo build --release --verbose --target $(target)
     displayName: 'build'
 
-  - script: cargo test --verbose --workspace
+  - script: cargo test --verbose --workspace --target $(target)
     displayName: test
 
   - task: CopyFiles@2
     inputs:
-      SourceFolder: 'target/release'
+      SourceFolder: 'target/$(target)/release'
       Contents: 'rnc*'
       TargetFolder: '$(build.artifactstagingdirectory)'
 
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: $(Build.ArtifactStagingDirectory)
-      artifact: $(osName)
+      artifact: rnc-$(osName)-$(arch)
       publishLocation: 'pipeline'
