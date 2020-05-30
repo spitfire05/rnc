@@ -23,6 +23,9 @@ jobs:
     vmImage: $(vmImage)
 
   steps:
+  - script: rustup target add $(target)
+    displayName: rustup add target
+
   - script: cargo build --release --verbose --target $(target)
     displayName: 'build'
 
