@@ -11,7 +11,7 @@ jobs:
         osName: windows
   
   pool:
-    vmmImage: $(vmImage)
+    vmImage: $(vmImage)
 
   steps:
   - script: cargo build --release --verbose
