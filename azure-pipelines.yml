@@ -1,6 +1,3 @@
-pool:
-  vmImage: 'ubuntu-latest'
-
 jobs:
 - job: build
   displayName: Build & Test
@@ -12,6 +9,7 @@ jobs:
       windows:
         vmImage: 'windows-latest'
         osName: windows
+  
   pool:
     vmmImage: $(vmImage)
 
