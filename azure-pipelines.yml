@@ -28,10 +28,9 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      SourceFolder: 'target/$(target)/release'
       Contents: |
-        'rnc'
-        'rnc.exe'
+        'target/$(target)/release/rnc'
+        'target/$(target)/release/rnc.exe'
       TargetFolder: '$(build.artifactstagingdirectory)'
 
   - task: PublishPipelineArtifact@1
