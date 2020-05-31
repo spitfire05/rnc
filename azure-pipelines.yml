@@ -34,8 +34,12 @@ jobs:
       TargetFolder: '$(build.artifactstagingdirectory)'
       flattenFolders: true
 
+  - powershell: |
+      $rnc_version = & $(Build.ArtifactStagingDirectory)/rnc --version
+      Write-Host "##vso[task.setvariable variable=rnc_version] $rnc_version
+
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: $(Build.ArtifactStagingDirectory)
-      artifact: rnc-$(Build.SourceBranchName)-$(target)
+      artifact: $(rnc-version)-$(target)
       publishLocation: 'pipeline'
