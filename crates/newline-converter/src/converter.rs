@@ -39,6 +39,15 @@ impl Converter {
     /// let converter = Converter::utf8(Conversion::Dos2unix);
     /// assert_eq!(converter.convert(b"foo\r\nbar").unwrap(), b"foo\nbar");
     /// ```
+    ///
+    /// Use `&str.bytes()` and `String::from_utf8` to deal with Rust strings:
+    /// ```
+    /// use newline_converter::*;
+    /// let someString = String::from("foobar\r\n");
+    /// let converter = Converter::utf8(Conversion::Dos2unix);
+    /// let bytes = converter.convert(someString.as_bytes()).unwrap();
+    /// let convertedString = String::from_utf8(bytes).unwrap();
+    /// assert_eq!("foobar\n", convertedString);
     pub fn utf8(conversion: Conversion) -> Converter {
         Converter::new(conversion, 1, ByteOrder::BigEndian)
     }

@@ -50,6 +50,15 @@ mod tests {
     }
 
     #[test]
+    fn strings() {
+        let some_string = "foobar\r\n";
+        let dos2unix = Converter::utf8(Conversion::Dos2unix);
+        let bytes = dos2unix.convert(some_string.as_bytes()).unwrap();
+        let new_string = String::from_utf8(bytes).unwrap();
+        assert_eq!("foobar\n", new_string);
+    }
+
+    #[test]
     fn errors() {
         let converter_3 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
         let converter_0 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
