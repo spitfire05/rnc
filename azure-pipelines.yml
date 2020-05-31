@@ -32,6 +32,7 @@ jobs:
         target/$(target)/release/rnc
         target/$(target)/release/rnc.exe
       TargetFolder: '$(build.artifactstagingdirectory)'
+      flattenFolders: true
 
   - task: PublishPipelineArtifact@1
     inputs:
