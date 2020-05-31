@@ -1,5 +1,5 @@
-# rnc
-Rust Newline Converter (`rnc`) - a "dos2unix lookalike" written in Rust
+# Rust Newline Converter (`rnc`)
+A "dos2unix lookalike" written in Rust
 
 [![Build Status](https://dev.azure.com/michal0805/rnc/_apis/build/status/spitfire05.rnc?branchName=master)](https://dev.azure.com/michal0805/rnc/_build/latest?definitionId=1&branchName=master)
 
