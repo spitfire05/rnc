@@ -36,10 +36,10 @@ jobs:
 
   - powershell: |
       $rnc_version = & $(Build.ArtifactStagingDirectory)/rnc --version
-      Write-Host "##vso[task.setvariable variable=rnc_version] $rnc_version
+      Write-Host "##vso[task.setvariable variable=rnc_version]$rnc_version
 
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: $(Build.ArtifactStagingDirectory)
-      artifact: $(rnc-version)-$(target)
+      artifact: $(RNC_VERSION)-$(target)
       publishLocation: 'pipeline'
