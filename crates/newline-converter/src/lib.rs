@@ -1,72 +1,164 @@
-//! A library for newline character converting
+//! A library for newline character converting.
 //!
-//! The main struct of this crate is [`Converter`] which can be used to configure and run the newline conversion.
+//! This crate provides two functions: [`dos2unix`] and [`unix2dos`] that perform the conversion on strings.
+//! 
+//! The conversion functions are **lazy** - they don't perform any allocations if the input is already in correct format.
 //!
-//! [`Converter`]: struct.Converter.html
+//! [`dos2unix`]: fn.dos2unix.html
+//! [`unix2dos`]: fn.unix2dos.html
 
-mod converter;
-mod errors;
-mod utils;
+use std::borrow::Cow;
 
-pub use crate::converter::Converter;
-pub use crate::utils::{ByteOrder, Conversion};
+/// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
+/// 
+/// The input string may already be in correct format, so this function
+/// returns `Cow<str>`, to avoid unecessary allocation and copying.
+/// 
+/// # Examples
+/// ```
+/// use newline_converter::dos2unix;
+/// assert_eq!(dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
+/// 
+/// // lone CR characters won't be removed:
+/// assert_eq!(dos2unix("\r\nfoo\rbar\r\n"), "\nfoo\rbar\n");
+/// ```
+pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
+    // let n = input.chars().filter(|x| *x == '\r').count();
+    // let mut output = String::with_capacity(input.len() - n);
+    let mut iter = input.chars().enumerate().peekable();
+
+    let mut output: Option<String> = None;
+
+    while let Some((i, current)) = iter.next() {
+        if '\r' == current {
+            if let Some((_, next)) = iter.peek() {
+                if let '\n' = next {
+                    // drop it
+                    if output.is_none() {
+                        let n = input.chars().filter(|x| *x == '\r').count();
+                        let mut buffer = String::with_capacity(input.len() - n);
+                        let (past, _) = input.split_at(i);
+                        buffer.push_str(past);
+                        output = Some(buffer);
+                    }
+                    continue;
+                }
+            }
+        }
+        if output.is_some() {
+            output.as_mut().unwrap().push(current);
+        }
+    }
+
+    match output {
+        None => Cow::Borrowed(input),
+        Some(o) => Cow::Owned(o),
+    }
+}
+
+/// Converts UNIX-style line endings (`\n`) to DOS-style (`\r\n`).
+/// 
+/// The input string may already be in correct format, so this function
+/// returns `Cow<str>`, to avoid unecessary allocation and copying.
+/// 
+/// # Examples
+/// ```
+/// use newline_converter::unix2dos;
+/// assert_eq!(unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// 
+/// // already present DOS line breaks are respected:
+/// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// ```
+pub fn unix2dos<'a>(input: &'a str) -> Cow<'a, str> {
+    let mut output: Option<String> = None;
+    let mut last_char: Option<char> = None;
+
+    let mut iter = input.chars().enumerate();
+    while let Some((i, current)) = iter.next() {
+        if '\n' == current && (i == 0 || last_char.is_some() && '\r' != last_char.unwrap()) {
+            if output.is_none() {
+                let n = input.chars().filter(|x| *x == '\n').count();
+                let mut buffer = String::with_capacity(input.len() + n);
+                let (past, _) = input.split_at(i);
+                buffer.push_str(past);
+                output = Some(buffer);
+            }
+            output.as_mut().unwrap().push('\r');
+        }
+        last_char = Some(current);
+
+        if let Some(o) = output.as_mut() {
+            o.push(current);
+        }
+    }
+
+    match output {
+        Some(o) => Cow::Owned(o),
+        None => Cow::Borrowed(input)
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn basic_conversion() {
-        let dos2unix = Converter::utf8(Conversion::Dos2unix);
-        let unix2dos = Converter::utf8(Conversion::Unix2dos);
-        assert_eq!(dos2unix.convert(b"foo\r\nbar").unwrap(), b"foo\nbar");
-        assert_eq!(unix2dos.convert(b"foo\nbar").unwrap(), b"foo\r\nbar");
+    fn middle() {
+        assert_eq!(dos2unix("foo\r\nbar"), "foo\nbar");
+        assert_eq!(unix2dos("foo\nbar"), "foo\r\nbar");
+    }
+
+    #[test]
+    fn beginning() {
+        assert_eq!(dos2unix("\r\nfoobar"), "\nfoobar");
+        assert_eq!(unix2dos("\nfoobar"), "\r\nfoobar");
+    }
+
+    #[test]
+    fn end() {
+        assert_eq!(dos2unix("foobar\r\n"), "foobar\n");
+        assert_eq!(unix2dos("foobar\n"), "foobar\r\n");
+    }
+
+    #[test]
+    fn all() {
+        assert_eq!(dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
+        assert_eq!(unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
     }
 
     #[test]
     fn advanced() {
-        let dos2unix = Converter::utf8(Conversion::Dos2unix);
-        let unix2dos = Converter::utf8(Conversion::Unix2dos);
         assert_eq!(
-            unix2dos.convert(b"\rfoo\r\nbar\n").unwrap(),
-            b"\rfoo\r\nbar\r\n"
+            unix2dos("\rfoo\r\nbar\n"),
+            "\rfoo\r\nbar\r\n"
         );
         assert_eq!(
-            dos2unix.convert(b"\nfoo\rbar\r\n").unwrap(),
-            b"\nfoo\rbar\n"
-        );
-        let utf16_le_dos: [u8; 8] = [0x00, 0x42, 0x00, 0x0D, 0x00, 0x0A, 0x00, 0x41];
-        let utf16_le_unix: [u8; 6] = [0x00, 0x42, 0x00, 0x0A, 0x00, 0x41];
-        let dos2unix_utf16le = Converter::utf16le(Conversion::Dos2unix);
-        let unix2dos_utf16le = Converter::utf16le(Conversion::Unix2dos);
-        assert_eq!(
-            unix2dos_utf16le.convert(&utf16_le_dos).unwrap(),
-            utf16_le_dos
-        );
-        assert_eq!(
-            dos2unix_utf16le.convert(&utf16_le_dos).unwrap(),
-            utf16_le_unix
+            dos2unix("\nfoo\rbar\r\n"),
+            "\nfoo\rbar\n"
         );
     }
 
     #[test]
-    fn strings() {
-        let some_string = "foobar\r\n";
-        let dos2unix = Converter::utf8(Conversion::Dos2unix);
-        let bytes = dos2unix.convert(some_string.as_bytes()).unwrap();
-        let new_string = String::from_utf8(bytes).unwrap();
-        assert_eq!("foobar\n", new_string);
+    fn not_mutated_dos2unix() {
+        let converted = dos2unix("\nfoo\nbar\n");
+        assert_eq!(converted, Cow::Borrowed("\nfoo\nbar\n") as Cow<str>);
     }
 
     #[test]
-    fn errors() {
-        let converter_3 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
-        let converter_0 = Converter::new(Conversion::Dos2unix, 3, ByteOrder::LittleEndian);
-        converter_3
-            .convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-            .unwrap_err();
-        converter_0
-            .convert(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-            .unwrap_err();
+    fn mutated_dos2unix() {
+        let converted = dos2unix("\r\nfoo\r\nbar\r\n");
+        assert_eq!(converted, Cow::Owned(String::from("\nfoo\nbar\n")) as Cow<str>);
+    }
+
+    #[test]
+    fn not_mutated_unix2dos() {
+        let converted = unix2dos("\r\nfoo\r\nbar\r\n");
+        assert_eq!(converted, Cow::Borrowed("\r\nfoo\r\nbar\r\n") as Cow<str>);
+    }
+
+    #[test]
+    fn mutated_unix2dos() {
+        let converted = unix2dos("\nfoo\nbar\n");
+        assert_eq!(converted, Cow::Owned(String::from("\r\nfoo\r\nbar\r\n")) as Cow<str>);
     }
 }

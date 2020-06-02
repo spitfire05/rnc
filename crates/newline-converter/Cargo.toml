@@ -9,3 +9,10 @@ repository = "https://github.com/spitfire05/rnc"
 readme = "README.md"
 keywords = ["newline", "linebreak", "conversion"]
 categories = ["encoding"]
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "bench"
+harness = false
