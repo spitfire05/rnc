@@ -1,11 +1,11 @@
 use clap::{App, Arg};
-use content_inspector::{inspect, ContentType};
+use content_inspector::inspect;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
-use std::io::{self, Read};
+use std::{borrow::Cow, io::{self, Read}};
 
-use newline_converter::*;
+use newline_converter::{dos2unix, unix2dos};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new("rnc")
@@ -33,18 +33,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .takes_value(true)
             .help("Write to OUT instead of FILE or stdout. Can only be used if FILE is specified just once")
         )
-        .arg(Arg::with_name("ENCODING")
-            .short("e")
-            .long("encoding")
-            .help("Treat input as ENCODING (default is utf8 for stdin, and an educated guess for files)")
-            .takes_value(true)
-            .possible_values(&["utf8", "utf16le", "utf16be", "utf32le", "utf32be"])
-        )
         .arg(Arg::with_name("FORCE")
             .short("f")
             .long("force")
             .help("Don't omit binary files")
-            .requires("ENCODING")
         )
         .arg(Arg::with_name("verbose")
             .short("v")
@@ -55,14 +47,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let verbose = matches.is_present("verbose");
 
-    let conv: Conversion;
+    let conv: Box<dyn Fn(&str) -> Cow<str>> =
     if matches.is_present("dos2unix") {
-        conv = Conversion::Dos2unix;
+        Box::new(dos2unix)
     } else if matches.is_present("unix2dos") {
-        conv = Conversion::Unix2dos;
+        Box::new(unix2dos)
     } else {
         unreachable!()
-    }
+    };
 
     if matches.is_present("OUT")
         && matches.is_present("FILE")
@@ -76,25 +68,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let output = matches.value_of("OUT");
 
-    let (force_char_size, force_order) = match matches.value_of("ENCODING") {
-        None => (None, None),
-        Some(x) => match x {
-            "utf8" => (Some(1), Some(ByteOrder::LittleEndian)),
-            "utf16le" => (Some(2), Some(ByteOrder::LittleEndian)),
-            "utf16be" => (Some(2), Some(ByteOrder::BigEndian)),
-            "utf32le" => (Some(4), Some(ByteOrder::LittleEndian)),
-            "utf32be" => (Some(4), Some(ByteOrder::BigEndian)),
-            _ => unreachable!(),
-        },
-    };
-
     if let Some(filenames) = matches.values_of("FILE") {
         for f in filenames {
             if verbose {
                 println!("Processing {} ", f);
             }
             let o = output.unwrap_or(f);
-            let r = process_file(f, o, conv, force_char_size, force_order, matches.is_present("FORCE"))?;
+            let r = process_file(f, o, &conv, matches.is_present("FORCE"))?;
             if verbose {
                 let FileProcessingResult(processed, read, write) = r;
                 if processed {
@@ -105,32 +85,27 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else {
-        process_stdio(conv, output, force_char_size, force_order)?;
+        process_stdio(conv, output)?;
     }
 
     Ok(())
 }
 
-fn process_stdio(
-    conv: Conversion,
-    outfile: Option<&str>,
-    force_char_size: Option<usize>,
-    force_order: Option<ByteOrder>,
-) -> Result<(), Box<dyn Error>> {
+fn process_stdio<F>(
+    conv: F,
+    outfile: Option<&str>
+) -> Result<(), Box<dyn Error>>
+    where F: Fn(&str) -> std::borrow::Cow<str>
+{
     let stdin = io::stdin();
     let mut out: Box<dyn Write> = match outfile {
         Some(f) => Box::new(fs::File::create(f)?),
         None => Box::new(io::stdout()),
     };
-    let converter = Converter::new(
-        conv,
-        force_char_size.unwrap_or(1),
-        force_order.unwrap_or(ByteOrder::LittleEndian),
-    );
-    let mut buffer = Vec::new();
-    stdin.lock().read_to_end(&mut buffer)?;
-    let converted = converter.convert(&buffer)?;
-    out.write_all(&converted)?;
+    let mut buffer = String::new();
+    stdin.lock().read_to_string(&mut buffer)?;
+    let converted = conv(&buffer);
+    out.write_all(converted.as_bytes())?;
     out.flush()?;
 
     Ok(())
@@ -138,58 +113,25 @@ fn process_stdio(
 
 struct FileProcessingResult(bool, usize, usize);
 
-fn process_file(
+fn process_file<F>(
     filename: &str,
     out: &str,
-    conv: Conversion,
-    force_char_size: Option<usize>,
-    force_order: Option<ByteOrder>,
+    conv: F,
     force_binary: bool,
-) -> Result<FileProcessingResult, Box<dyn Error>> {
+) -> Result<FileProcessingResult, std::io::Error> 
+    where F: Fn(&str) -> std::borrow::Cow<str>
+{
     let content = fs::read(filename)?;
 
-    let converter = match inspect(&content) {
-        ContentType::UTF_8 | ContentType::UTF_8_BOM => Some(Converter::new(
-            conv,
-            force_char_size.unwrap_or(1),
-            force_order.unwrap_or(ByteOrder::BigEndian),
-        )),
-        ContentType::UTF_16LE => Some(Converter::new(
-            conv,
-            force_char_size.unwrap_or(2),
-            force_order.unwrap_or(ByteOrder::LittleEndian),
-        )),
-        ContentType::UTF_16BE => Some(Converter::new(
-            conv,
-            force_char_size.unwrap_or(2),
-            force_order.unwrap_or(ByteOrder::BigEndian),
-        )),
-        ContentType::UTF_32LE => Some(Converter::new(
-            conv,
-            force_char_size.unwrap_or(4),
-            force_order.unwrap_or(ByteOrder::LittleEndian),
-        )),
-        ContentType::UTF_32BE => Some(Converter::new(
-            conv,
-            force_char_size.unwrap_or(4),
-            force_order.unwrap_or(ByteOrder::BigEndian),
-        )),
-        ContentType::BINARY => {
-            if force_binary {
-                Some(Converter::new(conv, force_char_size.unwrap(), force_order.unwrap()))
-            }
-            else {
-                None
-            }
-        },
-    };
-
-    if let Some(c) = converter {
-        let converted = c.convert(&content)?;
-        fs::write(out, &converted)?;
-
-        Ok(FileProcessingResult(true, content.len(), converted.len()))
-    } else {
-        Ok(FileProcessingResult(false, content.len(), 0))
+    if !force_binary && inspect(&content).is_binary() {
+        return Ok(FileProcessingResult(false, content.len(), 0));
     }
+
+    let as_string = String::from_utf8_lossy(&content);
+
+    let converted = conv(&as_string);
+
+    fs::write(out, converted.as_ref())?;
+
+    Ok(FileProcessingResult(true, content.len(), converted.len()))
 }
