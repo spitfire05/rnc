@@ -1,26 +1,13 @@
 # newline-converter
-`newline-converter` is a simple library used for converting the newline bytes in buffers between Windows `\r\n` and Unix `\n` style. All I/O data are `u8` buffers.
+`newline-converter` is a simple library used for converting the newline characters in strings between Windows `\r\n` and Unix `\n` style. It mainly serves as a backend for "Rust Newline converter" CLI tool.
 
-It mainly serves as a backend for "Rust Newline converter" CLI tool.
-
-## Examples
-
-UTF8 `dos2unix` conversion:
-
-```rust
-let dos2unix = Converter::utf8(Conversion::Dos2unix);
-assert_eq!(
-    dos2unix.convert(b"\nfoo\rbar\r\n").unwrap(),
+This lib has two significant advantages over using `string.replace`:
+* Looks for correct linebreaks on source platform. For example, lone `\r` characters won't get replaced by `dos2unix`  call:
+  ```rust
+  using newline_converter::dos2unix;
+  assert_eq!(
+    dos2unix(b"\nfoo\rbar\r\n").unwrap(),
     b"\nfoo\rbar\n"
-);
-```
-
-UTF16 Little Endian `unix2dos` conversion:
-
-```rust
-let some_string = "foobar\r\n";
-let dos2unix = Converter::utf8(Conversion::Dos2unix);
-let bytes = dos2unix.convert(some_string.as_bytes()).unwrap();
-let new_string = String::from_utf8(bytes).unwrap();
-assert_eq!("foobar\n", new_string);
-```
+  );
+  ```
+* Being significantly faster (about two times in normal cirmustances, and about twenty times faster when the input is already in correct format).
