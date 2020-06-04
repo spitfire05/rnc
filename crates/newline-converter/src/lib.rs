@@ -1,7 +1,7 @@
 //! A library for newline character converting.
 //!
 //! This crate provides two functions: [`dos2unix`] and [`unix2dos`] that perform the conversion on strings.
-//! 
+//!
 //! The conversion functions are **lazy** - they don't perform any allocations if the input is already in correct format.
 //!
 //! [`dos2unix`]: fn.dos2unix.html
@@ -10,15 +10,15 @@
 use std::borrow::Cow;
 
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
-/// 
+///
 /// The input string may already be in correct format, so this function
 /// returns `Cow<str>`, to avoid unecessary allocation and copying.
-/// 
+///
 /// # Examples
 /// ```
 /// use newline_converter::dos2unix;
 /// assert_eq!(dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
-/// 
+///
 /// // lone CR characters won't be removed:
 /// assert_eq!(dos2unix("\r\nfoo\rbar\r\n"), "\nfoo\rbar\n");
 /// ```
@@ -57,15 +57,15 @@ pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
 }
 
 /// Converts UNIX-style line endings (`\n`) to DOS-style (`\r\n`).
-/// 
+///
 /// The input string may already be in correct format, so this function
 /// returns `Cow<str>`, to avoid unecessary allocation and copying.
-/// 
+///
 /// # Examples
 /// ```
 /// use newline_converter::unix2dos;
 /// assert_eq!(unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
-/// 
+///
 /// // already present DOS line breaks are respected:
 /// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
 /// ```
@@ -94,7 +94,7 @@ pub fn unix2dos<'a>(input: &'a str) -> Cow<'a, str> {
 
     match output {
         Some(o) => Cow::Owned(o),
-        None => Cow::Borrowed(input)
+        None => Cow::Borrowed(input),
     }
 }
 
@@ -128,14 +128,8 @@ mod tests {
 
     #[test]
     fn advanced() {
-        assert_eq!(
-            unix2dos("\rfoo\r\nbar\n"),
-            "\rfoo\r\nbar\r\n"
-        );
-        assert_eq!(
-            dos2unix("\nfoo\rbar\r\n"),
-            "\nfoo\rbar\n"
-        );
+        assert_eq!(unix2dos("\rfoo\r\nbar\n"), "\rfoo\r\nbar\r\n");
+        assert_eq!(dos2unix("\nfoo\rbar\r\n"), "\nfoo\rbar\n");
     }
 
     #[test]
@@ -147,7 +141,10 @@ mod tests {
     #[test]
     fn mutated_dos2unix() {
         let converted = dos2unix("\r\nfoo\r\nbar\r\n");
-        assert_eq!(converted, Cow::Owned(String::from("\nfoo\nbar\n")) as Cow<str>);
+        assert_eq!(
+            converted,
+            Cow::Owned(String::from("\nfoo\nbar\n")) as Cow<str>
+        );
     }
 
     #[test]
@@ -159,6 +156,9 @@ mod tests {
     #[test]
     fn mutated_unix2dos() {
         let converted = unix2dos("\nfoo\nbar\n");
-        assert_eq!(converted, Cow::Owned(String::from("\r\nfoo\r\nbar\r\n")) as Cow<str>);
+        assert_eq!(
+            converted,
+            Cow::Owned(String::from("\r\nfoo\r\nbar\r\n")) as Cow<str>
+        );
     }
 }

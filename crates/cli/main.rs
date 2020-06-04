@@ -3,7 +3,10 @@ use content_inspector::inspect;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
-use std::{borrow::Cow, io::{self, Read}};
+use std::{
+    borrow::Cow,
+    io::{self, Read},
+};
 
 use newline_converter::{dos2unix, unix2dos};
 
@@ -47,8 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let verbose = matches.is_present("verbose");
 
-    let conv: Box<dyn Fn(&str) -> Cow<str>> =
-    if matches.is_present("dos2unix") {
+    let conv: Box<dyn Fn(&str) -> Cow<str>> = if matches.is_present("dos2unix") {
         Box::new(dos2unix)
     } else if matches.is_present("unix2dos") {
         Box::new(unix2dos)
@@ -91,11 +93,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn process_stdio<F>(
-    conv: F,
-    outfile: Option<&str>
-) -> Result<(), Box<dyn Error>>
-    where F: Fn(&str) -> std::borrow::Cow<str>
+fn process_stdio<F>(conv: F, outfile: Option<&str>) -> Result<(), Box<dyn Error>>
+where
+    F: Fn(&str) -> std::borrow::Cow<str>,
 {
     let stdin = io::stdin();
     let mut out: Box<dyn Write> = match outfile {
@@ -118,8 +118,9 @@ fn process_file<F>(
     out: &str,
     conv: F,
     force_binary: bool,
-) -> Result<FileProcessingResult, std::io::Error> 
-    where F: Fn(&str) -> std::borrow::Cow<str>
+) -> Result<FileProcessingResult, std::io::Error>
+where
+    F: Fn(&str) -> std::borrow::Cow<str>,
 {
     let content = fs::read(filename)?;
 
