@@ -27,6 +27,9 @@ members = [
 newline-converter = { version = "0.1.0", path = "crates/newline-converter" }
 clap = "2.33.1"
 content_inspector = "0.2.4"
+encoding = "0.2"
+log = "0.4.8"
+simplelog = "0.8.0"
 
 [dev-dependencies]
 assert_cmd = "0.10"

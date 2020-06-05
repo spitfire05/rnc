@@ -82,6 +82,26 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn utf16_input_output() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = NamedTempFile::new()?;
+    file.write(b"\xfe\xff\0\r\0\n").expect("Write failed");
+
+    let bin = escargot::CargoBuild::new()
+        .bin("rnc")
+        .current_release()
+        .current_target()
+        .run()?;
+    let mut cmd = bin.command();
+    cmd.arg("--dos2unix");
+    cmd.arg(file.path());
+    cmd.assert().success();
+    let converted = fs::read(file)?;
+    assert_eq!(converted, b"\xfe\xff\0\n");
+
+    Ok(())
+}
+
+#[test]
 fn binary_force() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
     write!(file, "\0\0\r\n\0\0\r\n")?;
