@@ -19,16 +19,16 @@ USAGE:
 
 FLAGS:
     -f, --force       Don't omit binary files
+    -d, --debug       Print out debug info
         --dos2unix    Convert DOS line endings to Unix (\r\n -> \n)
     -h, --help        Prints help information
         --unix2dos    Convert Unix line endings to DOS (\n -> \r\n)
     -V, --version     Prints version information
-    -v, --verbose     Print status messages to stdout (no effect if stdout is the conversion output)
+    -v, --verbose     Be verbose about the operations
 
 OPTIONS:
-    -e, --encoding <ENCODING>    Treat input as ENCODING (default is utf8 for stdin, and an educated guess for files)
-                                 [possible values: utf8, utf16le, utf16be, utf32le, utf32be]
-    -o, --output <OUT>           Write to OUT instead of FILE or stdout. Can only be used if FILE is specified just once
+    -e, --encode <ENCODE>    Encode output in given encoding [possible values: utf8, utf16, utf16be]
+    -o, --output <OUT>       Write to OUT instead of FILE or stdout. Can only be used if FILE is specified just once
 
 ARGS:
     <FILE>...    Sets the input file to use. If not set, processes stdin to stdout

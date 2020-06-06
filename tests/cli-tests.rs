@@ -84,7 +84,7 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn utf16_input_output() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
-    file.write(b"\xfe\xff\0\r\0\n").expect("Write failed");
+    file.write(b"\xff\xfe\r\0\n\0").expect("Write failed");
 
     let bin = escargot::CargoBuild::new()
         .bin("rnc")
@@ -93,10 +93,33 @@ fn utf16_input_output() -> Result<(), Box<dyn std::error::Error>> {
         .run()?;
     let mut cmd = bin.command();
     cmd.arg("--dos2unix");
+    cmd.arg("--debug");
     cmd.arg(file.path());
     cmd.assert().success();
     let converted = fs::read(file)?;
-    assert_eq!(converted, b"\xfe\xff\0\n");
+    assert_eq!(converted, b"\xff\xfe\n\0");
+
+    Ok(())
+}
+
+#[test]
+fn utf16_conversion() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = NamedTempFile::new()?;
+    file.write(b"\r\n").expect("Write failed");
+
+    let bin = escargot::CargoBuild::new()
+        .bin("rnc")
+        .current_release()
+        .current_target()
+        .run()?;
+    let mut cmd = bin.command();
+    cmd.arg("--dos2unix");
+    cmd.arg("--encode");
+    cmd.arg("utf16");
+    cmd.arg(file.path());
+    cmd.assert().success();
+    let converted = fs::read(file)?;
+    assert_eq!(converted, b"\xff\xfe\n\0");
 
     Ok(())
 }

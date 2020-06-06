@@ -1,14 +1,14 @@
 use clap::{App, Arg};
-use encoding::all::UTF_8;
+use encoding::all::{UTF_16BE, UTF_16LE, UTF_8};
 use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
+use log::{debug, info};
+use simplelog::*;
 use std::fs;
 use std::io::Write;
 use std::{
     borrow::Cow,
     io::{self, Read},
 };
-use log::{debug, info};
-use simplelog::*;
 
 use newline_converter::{dos2unix, unix2dos};
 
@@ -41,13 +41,13 @@ fn main() -> Result<(), RncError> {
             .takes_value(true)
             .help("Write to OUT instead of FILE or stdout. Can only be used if FILE is specified just once")
         )
-        // .arg(Arg::with_name("ENCODE")
-        //     .short("e")
-        //     .long("encode")
-        //     .help("Encode output in given encoding")
-        //     .takes_value(true)
-        //     .possible_values(&["utf8", "utf16", "utf16be"])
-        // )
+        .arg(Arg::with_name("ENCODE")
+            .short("e")
+            .long("encode")
+            .help("Encode output in given encoding")
+            .takes_value(true)
+            .possible_values(&["utf8", "utf16", "utf16be"])
+        )
         .arg(Arg::with_name("FORCE")
             .short("f")
             .long("force")
@@ -69,13 +69,17 @@ fn main() -> Result<(), RncError> {
     let debug = matches.is_present("debug");
     if debug {
         SimpleLogger::init(LevelFilter::Debug, Config::default()).expect("could not init logger");
-    }
-    else if verbose {
+    } else if verbose {
         SimpleLogger::init(LevelFilter::Info, Config::default()).expect("could not init logger");
-    }
-    else {
+    } else {
         SimpleLogger::init(LevelFilter::Off, Config::default()).expect("could not init logger");
     }
+
+    let encode: Option<EncodingRef> = matches.value_of("ENCODE").and_then(|x| match x {
+        "utf16" => Some(UTF_16LE as EncodingRef),
+        "utf16be" => Some(UTF_16BE as EncodingRef),
+        _ => Some(UTF_8 as EncodingRef),
+    });
 
     let conv: Box<dyn Fn(&str) -> Cow<str>> = if matches.is_present("dos2unix") {
         Box::new(dos2unix)
@@ -97,13 +101,17 @@ fn main() -> Result<(), RncError> {
 
     let output = matches.value_of("OUT");
 
+    if encode.is_some() {
+        debug!("Forced output encoding: {}", encode.unwrap().name());
+    }
+
     if let Some(filenames) = matches.values_of("FILE") {
         for f in filenames {
             if verbose {
                 println!("Processing {} ", f);
             }
             let o = output.unwrap_or(f);
-            let r = process_file(f, o, &conv, matches.is_present("FORCE"))?;
+            let r = process_file(f, o, &conv, matches.is_present("FORCE"), encode)?;
             let FileProcessingResult(processed, read, write) = r;
             if processed {
                 info!("{}: {} bytes read. {} bytes written", f, read, write);
@@ -112,13 +120,17 @@ fn main() -> Result<(), RncError> {
             }
         }
     } else {
-        process_stdio(conv, output)?;
+        process_stdio(conv, output, encode)?;
     }
 
     Ok(())
 }
 
-fn process_stdio<F>(conv: F, outfile: Option<&str>) -> Result<(), RncError>
+fn process_stdio<F>(
+    conv: F,
+    outfile: Option<&str>,
+    encode: Option<EncodingRef>,
+) -> Result<(), RncError>
 where
     F: Fn(&str) -> std::borrow::Cow<str>,
 {
@@ -129,7 +141,12 @@ where
     };
     let mut buffer: Vec<u8> = Vec::new();
     stdin.lock().read_to_end(&mut buffer)?;
-    process(&buffer, conv, None, &mut out)?;
+    process(
+        &buffer,
+        conv,
+        encode.or(Some(UTF_8 as EncodingRef)),
+        &mut out,
+    )?;
 
     Ok(())
 }
@@ -141,6 +158,7 @@ fn process_file<F>(
     out: &str,
     conv: F,
     force_binary: bool,
+    encode: Option<EncodingRef>,
 ) -> Result<FileProcessingResult, RncError>
 where
     F: Fn(&str) -> std::borrow::Cow<str>,
@@ -154,7 +172,7 @@ where
     }
 
     let mut f = fs::File::create(out)?;
-    let outlen = process(&content, conv, None, &mut f)?;
+    let outlen = process(&content, conv, encode, &mut f)?;
 
     Ok(FileProcessingResult(true, content.len(), outlen))
 }
@@ -173,9 +191,16 @@ where
     debug!("Detected encoding: {}", detected_encoding.name());
     let as_string = decoding_result?;
     let converted = conv(&as_string);
-    let encoded = encoding
-        .unwrap_or(detected_encoding)
+    let encode_with = encoding
+                    .unwrap_or(detected_encoding);
+    let encoded = encode_with
         .encode(&converted, EncoderTrap::Replace)?;
+    let bom: Vec<u8> = match encode_with.name() {
+        "utf-16le" => vec![0xFF, 0xFE],
+        "utf-16be" => vec![0xFE, 0xFF],
+        _ => vec![]
+    };
+    output.write(&bom)?;
     output.write(&encoded)?;
     output.flush()?;
 
