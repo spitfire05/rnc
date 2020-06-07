@@ -4,11 +4,8 @@ use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
 use log::{debug, info};
 use simplelog::*;
 use std::fs;
-use std::io::Write;
-use std::{
-    borrow::Cow,
-    io::{self, Read},
-};
+use std::io::{self, Write, BufRead};
+use std::borrow::Cow;
 
 use newline_converter::{dos2unix, unix2dos};
 
@@ -140,6 +137,7 @@ where
         None => Box::new(io::stdout()),
     };
     let mut buffer: Vec<u8> = Vec::new();
+    stdin.lock().lines().
     stdin.lock().read_to_end(&mut buffer)?;
     process(
         &buffer,

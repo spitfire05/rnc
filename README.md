@@ -1,7 +1,7 @@
 # Rust Newline Converter (`rnc`)
 A "dos2unix lookalike" written in Rust
 
-[![Build Status](https://dev.azure.com/michal0805/rnc/_apis/build/status/spitfire05.rnc?branchName=master)](https://dev.azure.com/michal0805/rnc/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://dev.azure.com/michal0805/rnc/_apis/build/status/spitfire05.rnc?branchName=master)](https://dev.azure.com/michal0805/rnc/_build/latest?definitionId=1&branchName=master) ![Crates.io](https://img.shields.io/crates/v/rust-newline-converter-cli)
 
 The motivation to write this crate had two main pivot points:
 * My "learning Rust" project
