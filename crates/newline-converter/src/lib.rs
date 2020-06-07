@@ -30,10 +30,8 @@ use std::borrow::Cow;
 ///    dos2unix("\nfoo\rbar\r\n"),
 ///    "\nfoo\rbar\n"
 ///  );
-///  ```
+/// ```
 pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
-    // let n = input.chars().filter(|x| *x == '\r').count();
-    // let mut output = String::with_capacity(input.len() - n);
     let mut iter = input.chars().enumerate().peekable();
 
     let mut output: Option<String> = None;
