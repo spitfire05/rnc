@@ -6,10 +6,10 @@
 This lib has two significant advantages over using `string.replace`:
 * Looks for correct linebreaks on source platform. For example, lone `\r` characters won't get replaced by `dos2unix`  call:
   ```rust
-  using newline_converter::dos2unix;
+  use newline_converter::dos2unix;
   assert_eq!(
-    dos2unix(b"\nfoo\rbar\r\n").unwrap(),
-    b"\nfoo\rbar\n"
+    dos2unix("\nfoo\rbar\r\n"),
+    "\nfoo\rbar\n"
   );
   ```
 * Being significantly faster (about two times in normal cirmustances, and about twenty times faster when the input is already in correct format).
