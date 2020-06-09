@@ -137,7 +137,6 @@ where
         None => Box::new(io::stdout()),
     };
     let mut buffer: Vec<u8> = Vec::new();
-    stdin.lock().lines().
     stdin.lock().read_to_end(&mut buffer)?;
     process(
         &buffer,
