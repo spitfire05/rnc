@@ -4,7 +4,7 @@ use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
 use log::{debug, info};
 use simplelog::*;
 use std::fs;
-use std::io::{self, Write, BufRead};
+use std::io::{self, Write, Read};
 use std::borrow::Cow;
 
 use newline_converter::{dos2unix, unix2dos};
