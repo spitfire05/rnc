@@ -22,7 +22,7 @@ use std::borrow::Cow;
 /// // lone CR characters won't be removed:
 /// assert_eq!(dos2unix("\r\nfoo\rbar\r\n"), "\nfoo\rbar\n");
 /// ```
-/// 
+///
 /// Lone `\r` bytes will be preserved:
 /// ```
 /// use newline_converter::dos2unix;

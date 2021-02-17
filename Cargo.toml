@@ -24,7 +24,7 @@ members = [
 ]
 
 [dependencies]
-newline-converter = { version = "0.1.0", path = "crates/newline-converter" }
+newline-converter = { version = "0.2.0", path = "crates/newline-converter" }
 clap = "2.33.1"
 content_inspector = "0.2.4"
 encoding = "0.2"
