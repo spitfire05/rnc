@@ -1,6 +1,6 @@
 [package]
 name = "newline-converter"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
 license = "MIT"
