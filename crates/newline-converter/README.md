@@ -12,4 +12,4 @@ This lib has two significant advantages over using `string.replace`:
     "\nfoo\rbar\n"
   );
   ```
-* Being significantly faster (about two times in normal cirmustances, and about twenty times faster when the input is already in correct format).
+* Being significantly faster (about two times in normal circumstances, and about twenty times faster when the input is already in correct format).

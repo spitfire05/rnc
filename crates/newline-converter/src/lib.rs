@@ -12,7 +12,7 @@ use std::borrow::Cow;
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
 ///
 /// The input string may already be in correct format, so this function
-/// returns `Cow<str>`, to avoid unecessary allocation and copying.
+/// returns `Cow<str>`, to avoid unnecessary allocation and copying.
 ///
 /// # Examples
 /// ```
@@ -31,9 +31,10 @@ use std::borrow::Cow;
 ///    "\nfoo\rbar\n"
 ///  );
 /// ```
-pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
-    let mut iter = input.chars().enumerate().peekable();
+pub fn dos2unix<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
+    let mut iter = input.as_ref().chars().enumerate().peekable();
 
+    let input = input.as_ref();
     let mut output: Option<String> = None;
 
     while let Some((i, current)) = iter.next() {
@@ -66,7 +67,7 @@ pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
 /// Converts UNIX-style line endings (`\n`) to DOS-style (`\r\n`).
 ///
 /// The input string may already be in correct format, so this function
-/// returns `Cow<str>`, to avoid unecessary allocation and copying.
+/// returns `Cow<str>`, to avoid unnecessary allocation and copying.
 ///
 /// # Examples
 /// ```
@@ -76,10 +77,11 @@ pub fn dos2unix<'a>(input: &'a str) -> Cow<'a, str> {
 /// // already present DOS line breaks are respected:
 /// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
 /// ```
-pub fn unix2dos<'a>(input: &'a str) -> Cow<'a, str> {
+pub fn unix2dos<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
     let mut output: Option<String> = None;
     let mut last_char: Option<char> = None;
 
+    let input = input.as_ref();
     let mut iter = input.chars().enumerate();
     while let Some((i, current)) = iter.next() {
         if '\n' == current && (i == 0 || last_char.is_some() && '\r' != last_char.unwrap()) {
