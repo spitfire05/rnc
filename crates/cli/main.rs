@@ -14,7 +14,7 @@ use errors::RncError;
 
 fn main() -> Result<(), RncError> {
     let matches = App::new("rnc")
-        .version("0.1")
+        .version("0.1.1")
         .about("Neline byte(s) converter")
         .arg(Arg::with_name("FILE")
             .help("Sets the input file to use. If not set, processes stdin to stdout")

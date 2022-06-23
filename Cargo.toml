@@ -1,6 +1,6 @@
 [package]
 name = "rust-newline-converter-cli"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
 license = "MIT"
