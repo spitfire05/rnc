@@ -12,7 +12,17 @@ jobs:
   build:
     strategy:
       matrix:
-        toolchain: ["stable", "1.38.0"]
+        toolchain: [stable, msrv-lib, msrv-bin]
+        include:
+        - toolchain: stable
+          rust: stable
+          args: ""
+        - toolchain: msrv-lib
+          rust: 1.38.0
+          args: "-p newline-converter"
+        - toolchain: msrv-bin
+          rust: 1.40.0
+          args: ""
 
     runs-on: ubuntu-latest
     
@@ -24,12 +34,12 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: ${{ matrix.toolchain }}
+        toolchain: ${{ matrix.toolchain.rust }}
         override: true
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose ${{ matrix.toolchain.args }}
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose ${{ matrix.toolchain.args }}
       
   lint:
     runs-on: ubuntu-latest
@@ -48,3 +58,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --all-features
+
+  done:
+    name: Done
+    needs: [build, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: echo Done

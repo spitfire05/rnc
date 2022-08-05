@@ -43,4 +43,4 @@ In future there might be an option to override this behavior.
 One of the main developement goals, was to achieve conversion times not worse that the ones of `dos2unix`. On Linux host, the performance is roughly similar (about 0.1s difference when converting ~100MB file), while on windows `rnc` is twice as fast as `dos2unix` (version downloaded from https://sourceforge.net/projects/dos2unix/).
 
 ## MSRV
-Minimum Supported Rust Version is `1.38.0`.
+Minimum Supported Rust Version is `1.40.0`.
