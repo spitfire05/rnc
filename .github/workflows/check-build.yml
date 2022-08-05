@@ -38,9 +38,23 @@ jobs:
         override: true
     - name: Build
       run: cargo build --verbose ${{ matrix.args }}
+  
+  test:
+    runs-on: ubuntu-latest
+    
+    env:
+      RUSTFLAGS: "--deny warnings"
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
     - name: Run tests
-      run: cargo test --verbose ${{ matrix.args }}
-      
+      run: cargo test --verbose
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +75,7 @@ jobs:
 
   done:
     name: Done
-    needs: [build, lint]
+    needs: [build, test, lint]
     runs-on: ubuntu-latest
     steps:
       - name: Done
