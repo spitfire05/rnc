@@ -31,7 +31,7 @@ use std::borrow::Cow;
 ///    "\nfoo\rbar\n"
 ///  );
 /// ```
-pub fn dos2unix<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
+pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut iter = input.as_ref().chars().enumerate().peekable();
 
     let input = input.as_ref();
@@ -39,18 +39,16 @@ pub fn dos2unix<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
 
     while let Some((i, current)) = iter.next() {
         if '\r' == current {
-            if let Some((_, next)) = iter.peek() {
-                if let '\n' = next {
-                    // drop it
-                    if output.is_none() {
-                        let n = input.chars().filter(|x| *x == '\r').count();
-                        let mut buffer = String::with_capacity(input.len() - n);
-                        let (past, _) = input.split_at(i);
-                        buffer.push_str(past);
-                        output = Some(buffer);
-                    }
-                    continue;
+            if let Some((_, '\n')) = iter.peek() {
+                // drop it
+                if output.is_none() {
+                    let n = input.chars().filter(|x| *x == '\r').count();
+                    let mut buffer = String::with_capacity(input.len() - n);
+                    let (past, _) = input.split_at(i);
+                    buffer.push_str(past);
+                    output = Some(buffer);
                 }
+                continue;
             }
         }
         if output.is_some() {
@@ -77,13 +75,13 @@ pub fn dos2unix<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
 /// // already present DOS line breaks are respected:
 /// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
 /// ```
-pub fn unix2dos<'a, T: AsRef<str> + ?Sized>(input: &'a T) -> Cow<'a, str> {
+pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut output: Option<String> = None;
     let mut last_char: Option<char> = None;
 
     let input = input.as_ref();
-    let mut iter = input.chars().enumerate();
-    while let Some((i, current)) = iter.next() {
+    let iter = input.chars().enumerate();
+    for (i, current) in iter {
         if '\n' == current && (i == 0 || last_char.is_some() && '\r' != last_char.unwrap()) {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
