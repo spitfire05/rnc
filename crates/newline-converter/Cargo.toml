@@ -12,6 +12,7 @@ categories = ["encoding"]
 
 [dev-dependencies]
 criterion = "0.3"
+lazy-regex = "2.3.0"
 
 [lib]
 bench = false
