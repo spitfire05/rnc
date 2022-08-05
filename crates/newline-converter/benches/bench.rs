@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use lazy_regex::{Regex, regex};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use lazy_regex::{regex, Regex};
 use newline_converter::{dos2unix, unix2dos};
 
 fn dos2unix_string_replace<T: AsRef<str> + ?Sized>(input: &T) -> String {
@@ -29,50 +29,68 @@ const UNIX_INPUT: &'static str = "\nfoo\nbar\n";
 fn bench_dos2unix(c: &mut Criterion) {
     let mut group = c.benchmark_group("dos2unix");
     let i = DOS_INPUT;
-    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, 
-        |b, i| b.iter(|| dos2unix(i)));
-    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, 
-        |b, i| b.iter(|| dos2unix_string_replace(i)));
-    group.bench_with_input(BenchmarkId::new("regex", ""), i, 
-        |b, i| b.iter(|| dos2unix_regex(i)));
+    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, |b, i| {
+        b.iter(|| dos2unix(i))
+    });
+    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, |b, i| {
+        b.iter(|| dos2unix_string_replace(i))
+    });
+    group.bench_with_input(BenchmarkId::new("regex", ""), i, |b, i| {
+        b.iter(|| dos2unix_regex(i))
+    });
     group.finish();
 }
 
 fn bench_dos2unix_noop(c: &mut Criterion) {
     let mut group = c.benchmark_group("dos2unix_noop");
     let i = UNIX_INPUT;
-    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, 
-        |b, i| b.iter(|| dos2unix(i)));
-    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, 
-        |b, i| b.iter(|| dos2unix_string_replace(i)));
-    group.bench_with_input(BenchmarkId::new("regex", ""), i, 
-        |b, i| b.iter(|| dos2unix_regex(i)));
+    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, |b, i| {
+        b.iter(|| dos2unix(i))
+    });
+    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, |b, i| {
+        b.iter(|| dos2unix_string_replace(i))
+    });
+    group.bench_with_input(BenchmarkId::new("regex", ""), i, |b, i| {
+        b.iter(|| dos2unix_regex(i))
+    });
     group.finish();
 }
 
 fn bench_unix2dos(c: &mut Criterion) {
     let mut group = c.benchmark_group("unix2dos");
     let i = UNIX_INPUT;
-    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, 
-        |b, i| b.iter(|| unix2dos(i)));
-    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, 
-        |b, i| b.iter(|| unix2dos_string_replace(i)));
-    group.bench_with_input(BenchmarkId::new("regex", ""), i, 
-        |b, i| b.iter(|| unix2dos_regex(i)));
+    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, |b, i| {
+        b.iter(|| unix2dos(i))
+    });
+    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, |b, i| {
+        b.iter(|| unix2dos_string_replace(i))
+    });
+    group.bench_with_input(BenchmarkId::new("regex", ""), i, |b, i| {
+        b.iter(|| unix2dos_regex(i))
+    });
     group.finish();
 }
 
 fn bench_unix2dos_noop(c: &mut Criterion) {
     let mut group = c.benchmark_group("unix2dos_noop");
     let i = DOS_INPUT;
-    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, 
-        |b, i| b.iter(|| unix2dos(i)));
-    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, 
-        |b, i| b.iter(|| unix2dos_string_replace(i)));
-    group.bench_with_input(BenchmarkId::new("regex", ""), i, 
-        |b, i| b.iter(|| unix2dos_regex(i)));
+    group.bench_with_input(BenchmarkId::new("newline-converter", ""), i, |b, i| {
+        b.iter(|| unix2dos(i))
+    });
+    group.bench_with_input(BenchmarkId::new("string.replace", ""), i, |b, i| {
+        b.iter(|| unix2dos_string_replace(i))
+    });
+    group.bench_with_input(BenchmarkId::new("regex", ""), i, |b, i| {
+        b.iter(|| unix2dos_regex(i))
+    });
     group.finish();
 }
 
-criterion_group!(benches, bench_dos2unix, bench_dos2unix_noop, bench_unix2dos, bench_unix2dos_noop);
+criterion_group!(
+    benches,
+    bench_dos2unix,
+    bench_dos2unix_noop,
+    bench_unix2dos,
+    bench_unix2dos_noop
+);
 criterion_main!(benches);
