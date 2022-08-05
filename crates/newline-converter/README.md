@@ -4,7 +4,7 @@
 [![Build Status](https://dev.azure.com/michal0805/rnc/_apis/build/status/spitfire05.rnc?branchName=master)](https://dev.azure.com/michal0805/rnc/_build/latest?definitionId=1&branchName=master)
 [![Crates.io](https://img.shields.io/crates/v/newline-converter)](https://crates.io/crates/newline-converter)
 
-This lib has two significant advantages over using `string.replace`:
+This lib has two significant advantages over using `string.replace` or `Regex::replace_all`:
 * Looks for correct linebreaks on source platform. For example, lone `\r` characters won't get replaced by `dos2unix`  call:
   ```rust
   use newline_converter::dos2unix;
@@ -13,7 +13,7 @@ This lib has two significant advantages over using `string.replace`:
     "\nfoo\rbar\n"
   );
   ```
-* Being significantly faster (about two times in normal circumstances, and about twenty times faster when the input is already in correct format).
+* Being significantly faster (comparision benchmarks included, run `cargo bench` to benchmark locally).
 
 ## MSRV
 Minimum Supported Rust Version is `1.38.0`.
