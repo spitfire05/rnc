@@ -1,4 +1,5 @@
 # Based on https://eugene-babichenko.github.io/blog/2020/05/09/github-actions-cross-platform-auto-releases/
+name: Release
 
 on:
   push:
@@ -27,7 +28,7 @@ jobs:
 
   build:
     name: Build
-    needs: create-release
+    needs: create_release
     strategy:
       matrix:
         build: [win32, win64]
@@ -61,11 +62,11 @@ jobs:
         7z a "$staging.zip" "$staging"
         echo "ASSET=$staging.zip" >> $GITHUB_ENV
     - name: Upload release assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_name: ${{ env.ASSET }}
-          asset_path: ${{ env.ASSET }}
-          asset_content_type: application/octet-stream
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: ${{ env.ASSET }}
+        asset_path: ${{ env.ASSET }}
+        asset_content_type: application/octet-stream
