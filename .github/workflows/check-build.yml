@@ -34,12 +34,12 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
-        toolchain: ${{ matrix.toolchain.rust }}
+        toolchain: ${{ matrix.rust }}
         override: true
     - name: Build
-      run: cargo build --verbose ${{ matrix.toolchain.args }}
+      run: cargo build --verbose ${{ matrix.args }}
     - name: Run tests
-      run: cargo test --verbose ${{ matrix.toolchain.args }}
+      run: cargo test --verbose ${{ matrix.args }}
       
   lint:
     runs-on: ubuntu-latest
