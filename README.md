@@ -12,7 +12,7 @@ However, similarities to `dos2unix` are in functionality only, the CLI interface
 ## Tool usage
 ```
 rnc 0.1
-Neline byte(s) converter
+Newline byte(s) converter
 
 USAGE:
     rnc.exe [FLAGS] [OPTIONS] --dos2unix --unix2dos [FILE]...
