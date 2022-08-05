@@ -14,3 +14,6 @@ This lib has two significant advantages over using `string.replace`:
   );
   ```
 * Being significantly faster (about two times in normal circumstances, and about twenty times faster when the input is already in correct format).
+
+## MSRV
+Minimum Supported Rust Version is `1.38.0`.

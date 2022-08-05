@@ -12,7 +12,7 @@ However, similarities to `dos2unix` are in functionality only, the CLI interface
 ## Tool usage
 ```
 rnc 0.1
-Neline byte(s) converter
+Newline byte(s) converter
 
 USAGE:
     rnc.exe [FLAGS] [OPTIONS] --dos2unix --unix2dos [FILE]...
@@ -41,3 +41,6 @@ In future there might be an option to override this behavior.
 
 ## Performance
 One of the main developement goals, was to achieve conversion times not worse that the ones of `dos2unix`. On Linux host, the performance is roughly similar (about 0.1s difference when converting ~100MB file), while on windows `rnc` is twice as fast as `dos2unix` (version downloaded from https://sourceforge.net/projects/dos2unix/).
+
+## MSRV
+Minimum Supported Rust Version is `1.38.0`.
