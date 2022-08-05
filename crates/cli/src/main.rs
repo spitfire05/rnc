@@ -72,10 +72,10 @@ fn main() -> Result<(), RncError> {
         SimpleLogger::init(LevelFilter::Off, Config::default()).expect("could not init logger");
     }
 
-    let encode: Option<EncodingRef> = matches.value_of("ENCODE").and_then(|x| match x {
-        "utf16" => Some(UTF_16LE as EncodingRef),
-        "utf16be" => Some(UTF_16BE as EncodingRef),
-        _ => Some(UTF_8 as EncodingRef),
+    let encode: Option<EncodingRef> = matches.value_of("ENCODE").map(|x| match x {
+        "utf16" => UTF_16LE as EncodingRef,
+        "utf16be" => UTF_16BE as EncodingRef,
+        _ => UTF_8 as EncodingRef,
     });
 
     let conv: Box<dyn Fn(&str) -> Cow<str>> = if matches.is_present("dos2unix") {
@@ -197,8 +197,8 @@ where
         "utf-16be" => vec![0xFE, 0xFF],
         _ => vec![]
     };
-    output.write(&bom)?;
-    output.write(&encoded)?;
+    output.write_all(&bom)?;
+    output.write_all(&encoded)?;
     output.flush()?;
 
     Ok(encoded.len())
