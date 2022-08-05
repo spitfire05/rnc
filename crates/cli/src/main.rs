@@ -3,9 +3,9 @@ use encoding::all::{UTF_16BE, UTF_16LE, UTF_8};
 use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
 use log::{debug, info};
 use simplelog::*;
-use std::fs;
-use std::io::{self, Write, Read};
 use std::borrow::Cow;
+use std::fs;
+use std::io::{self, Read, Write};
 
 use newline_converter::{dos2unix, unix2dos};
 
@@ -14,8 +14,8 @@ use errors::RncError;
 
 fn main() -> Result<(), RncError> {
     let matches = App::new("rnc")
-        .version("0.1")
-        .about("Neline byte(s) converter")
+        .version("0.1.1")
+        .about("Newline byte(s) converter")
         .arg(Arg::with_name("FILE")
             .help("Sets the input file to use. If not set, processes stdin to stdout")
             .takes_value(true)
@@ -72,10 +72,10 @@ fn main() -> Result<(), RncError> {
         SimpleLogger::init(LevelFilter::Off, Config::default()).expect("could not init logger");
     }
 
-    let encode: Option<EncodingRef> = matches.value_of("ENCODE").and_then(|x| match x {
-        "utf16" => Some(UTF_16LE as EncodingRef),
-        "utf16be" => Some(UTF_16BE as EncodingRef),
-        _ => Some(UTF_8 as EncodingRef),
+    let encode: Option<EncodingRef> = matches.value_of("ENCODE").map(|x| match x {
+        "utf16" => UTF_16LE as EncodingRef,
+        "utf16be" => UTF_16BE as EncodingRef,
+        _ => UTF_8 as EncodingRef,
     });
 
     let conv: Box<dyn Fn(&str) -> Cow<str>> = if matches.is_present("dos2unix") {
@@ -188,17 +188,15 @@ where
     debug!("Detected encoding: {}", detected_encoding.name());
     let as_string = decoding_result?;
     let converted = conv(&as_string);
-    let encode_with = encoding
-                    .unwrap_or(detected_encoding);
-    let encoded = encode_with
-        .encode(&converted, EncoderTrap::Replace)?;
+    let encode_with = encoding.unwrap_or(detected_encoding);
+    let encoded = encode_with.encode(&converted, EncoderTrap::Replace)?;
     let bom: Vec<u8> = match encode_with.name() {
         "utf-16le" => vec![0xFF, 0xFE],
         "utf-16be" => vec![0xFE, 0xFF],
-        _ => vec![]
+        _ => vec![],
     };
-    output.write(&bom)?;
-    output.write(&encoded)?;
+    output.write_all(&bom)?;
+    output.write_all(&encoded)?;
     output.flush()?;
 
     Ok(encoded.len())

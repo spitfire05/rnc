@@ -84,7 +84,7 @@ fn new_file_dos2unix() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn utf16_input_output() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
-    file.write(b"\xff\xfe\r\0\n\0").expect("Write failed");
+    file.write_all(b"\xff\xfe\r\0\n\0").expect("Write failed");
 
     let bin = escargot::CargoBuild::new()
         .bin("rnc")
@@ -105,7 +105,7 @@ fn utf16_input_output() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn utf16_conversion() -> Result<(), Box<dyn std::error::Error>> {
     let mut file = NamedTempFile::new()?;
-    file.write(b"\r\n").expect("Write failed");
+    file.write_all(b"\r\n").expect("Write failed");
 
     let bin = escargot::CargoBuild::new()
         .bin("rnc")

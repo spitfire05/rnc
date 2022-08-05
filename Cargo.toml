@@ -1,38 +1,9 @@
-[package]
-name = "rust-newline-converter-cli"
-version = "0.1.0"
-authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
-edition = "2018"
-license = "MIT"
-description = "Newline byte converter library"
-repository = "https://github.com/spitfire05/rnc"
-readme = "README.md"
-keywords = ["newline", "linebreak", "conversion"]
-categories = ["encoding", "command-line-utilities"]
-include = [
-    "crates/cli/*",
-    "Cargo.toml"
-]
-
-[[bin]]
-name = "rnc"
-path = "crates/cli/main.rs"
-
 [workspace]
 members = [
   "crates/newline-converter",
+  "crates/cli"
 ]
 
-[dependencies]
-newline-converter = { version = "0.2.0", path = "crates/newline-converter" }
-clap = "2.33.1"
-content_inspector = "0.2.4"
-encoding = "0.2"
-log = "0.4.8"
-simplelog = "0.8.0"
-
-[dev-dependencies]
-assert_cmd = "0.10"
-predicates = "1"
-tempfile = "3"
-escargot = "0.5"
+[profile.release]
+lto = true
+codegen-units = 1
