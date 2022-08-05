@@ -3,9 +3,9 @@ use encoding::all::{UTF_16BE, UTF_16LE, UTF_8};
 use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
 use log::{debug, info};
 use simplelog::*;
-use std::fs;
-use std::io::{self, Write, Read};
 use std::borrow::Cow;
+use std::fs;
+use std::io::{self, Read, Write};
 
 use newline_converter::{dos2unix, unix2dos};
 
@@ -188,14 +188,12 @@ where
     debug!("Detected encoding: {}", detected_encoding.name());
     let as_string = decoding_result?;
     let converted = conv(&as_string);
-    let encode_with = encoding
-                    .unwrap_or(detected_encoding);
-    let encoded = encode_with
-        .encode(&converted, EncoderTrap::Replace)?;
+    let encode_with = encoding.unwrap_or(detected_encoding);
+    let encoded = encode_with.encode(&converted, EncoderTrap::Replace)?;
     let bom: Vec<u8> = match encode_with.name() {
         "utf-16le" => vec![0xFF, 0xFE],
         "utf-16be" => vec![0xFE, 0xFF],
-        _ => vec![]
+        _ => vec![],
     };
     output.write_all(&bom)?;
     output.write_all(&encoded)?;
