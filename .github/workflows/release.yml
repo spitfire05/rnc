@@ -60,6 +60,7 @@ jobs:
       shell: bash
       run: |
         staging=rnc-$GIT_TAG_NAME-${{ matrix.target }}
+        mkdir -p $staging
         cp "target/${{ matrix.target }}/release/rnc.exe" "$staging/"
         7z a "$staging.zip" "$staging"
         echo "ASSET=$staging.zip" >> $GITHUB_ENV
