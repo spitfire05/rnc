@@ -82,7 +82,7 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let input = input.as_ref();
     let iter = input.chars().enumerate();
     for (i, current) in iter {
-        if '\n' == current && (i == 0 || last_char.is_some() && '\r' != last_char.unwrap()) {
+        if '\n' == current && (i == 0 || !matches!(last_char, Some('\r'))) {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
