@@ -12,7 +12,9 @@ categories = ["encoding"]
 
 [dev-dependencies]
 criterion = "0.3"
-lazy-regex = "2.3.0"
+lazy-regex = "2.3"
+once_cell = "1.15"
+fancy-regex = "0.10"
 
 [lib]
 bench = false
