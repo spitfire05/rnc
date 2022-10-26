@@ -62,6 +62,7 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     }
 }
 
+#[allow(clippy::match_like_matches_macro)] // MSRV 1.38, matches! macro available in 1.42
 /// Converts UNIX-style line endings (`\n`) to DOS-style (`\r\n`).
 ///
 /// The input string may already be in correct format, so this function
@@ -82,7 +83,13 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let input = input.as_ref();
     let iter = input.chars().enumerate();
     for (i, current) in iter {
-        if '\n' == current && (i == 0 || !matches!(last_char, Some('\r'))) {
+        if '\n' == current
+            && (i == 0
+                || match last_char {
+                    Some('\r') => false,
+                    _ => true,
+                })
+        {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
