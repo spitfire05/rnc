@@ -34,26 +34,32 @@ use unicode_segmentation::UnicodeSegmentation;
 ///  );
 /// ```
 pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
-    let iter = input.as_ref().grapheme_indices(true).peekable();
+    let mut iter = input.as_ref().chars().peekable();
 
     let input = input.as_ref();
     let mut output: Option<String> = None;
 
-    for (i, current) in iter {
-        if "\r\n" == current {
-            // drop it
-            if output.is_none() {
-                let n = input.chars().filter(|x| *x == '\r').count();
-                let mut buffer = String::with_capacity(input.len() - n);
-                let (past, _) = input.split_at(i);
-                buffer.push_str(past);
-                output = Some(buffer);
+    while let Some(current) = iter.next() {
+        if '\r' == current {
+            if let Some('\n') = iter.peek() {
+                // drop it
+                if output.is_none() {
+                    let n = input.chars().filter(|x| *x == '\r').count();
+                    let mut buffer = String::with_capacity(input.len() - n);
+                    let i = input
+                        .grapheme_indices(true)
+                        .find(|(_, x)| *x == "\r\n")
+                        .map(|(i, _)| i)
+                        .unwrap();
+                    let (past, _) = input.split_at(i);
+                    buffer.push_str(past);
+                    output = Some(buffer);
+                }
+                continue;
             }
-            output.as_mut().unwrap().push('\n');
-            continue;
         }
         if output.is_some() {
-            output.as_mut().unwrap().push_str(current);
+            output.as_mut().unwrap().push(current);
         }
     }
 
@@ -79,20 +85,25 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 /// ```
 pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut output: Option<String> = None;
-    let mut last_char: Option<&str> = None;
+    let mut last_char: Option<char> = None;
 
     let input = input.as_ref();
-    for (i, current) in input.grapheme_indices(true) {
-        if "\n" == current
+    for (i, current) in input.chars().enumerate() {
+        if '\n' == current
             && (i == 0
                 || match last_char {
-                    Some("\r") => false,
+                    Some('\r') => false,
                     _ => true,
                 })
         {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
+                let i = input
+                    .grapheme_indices(true)
+                    .find(|(_, x)| *x == "\n")
+                    .map(|(i, _)| i)
+                    .unwrap();
                 let (past, _) = input.split_at(i);
                 buffer.push_str(past);
                 output = Some(buffer);
@@ -102,7 +113,7 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
         last_char = Some(current);
 
         if let Some(o) = output.as_mut() {
-            o.push_str(current);
+            o.push(current);
         }
     }
 
