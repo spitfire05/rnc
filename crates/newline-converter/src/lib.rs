@@ -9,6 +9,8 @@
 
 use std::borrow::Cow;
 
+use unicode_segmentation::UnicodeSegmentation;
+
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
 ///
 /// The input string may already be in correct format, so this function
@@ -32,27 +34,26 @@ use std::borrow::Cow;
 ///  );
 /// ```
 pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
-    let mut iter = input.as_ref().chars().enumerate().peekable();
+    let iter = input.as_ref().grapheme_indices(true).peekable();
 
     let input = input.as_ref();
     let mut output: Option<String> = None;
 
-    while let Some((i, current)) = iter.next() {
-        if '\r' == current {
-            if let Some((_, '\n')) = iter.peek() {
-                // drop it
-                if output.is_none() {
-                    let n = input.chars().filter(|x| *x == '\r').count();
-                    let mut buffer = String::with_capacity(input.len() - n);
-                    let (past, _) = input.split_at(i);
-                    buffer.push_str(past);
-                    output = Some(buffer);
-                }
-                continue;
+    for (i, current) in iter {
+        if "\r\n" == current {
+            // drop it
+            if output.is_none() {
+                let n = input.chars().filter(|x| *x == '\r').count();
+                let mut buffer = String::with_capacity(input.len() - n);
+                let (past, _) = input.split_at(i);
+                buffer.push_str(past);
+                output = Some(buffer);
             }
+            output.as_mut().unwrap().push('\n');
+            continue;
         }
         if output.is_some() {
-            output.as_mut().unwrap().push(current);
+            output.as_mut().unwrap().push_str(current);
         }
     }
 
@@ -78,15 +79,14 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 /// ```
 pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut output: Option<String> = None;
-    let mut last_char: Option<char> = None;
+    let mut last_char: Option<&str> = None;
 
     let input = input.as_ref();
-    let iter = input.chars().enumerate();
-    for (i, current) in iter {
-        if '\n' == current
+    for (i, current) in input.grapheme_indices(true) {
+        if "\n" == current
             && (i == 0
                 || match last_char {
-                    Some('\r') => false,
+                    Some("\r") => false,
                     _ => true,
                 })
         {
@@ -102,7 +102,7 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
         last_char = Some(current);
 
         if let Some(o) = output.as_mut() {
-            o.push(current);
+            o.push_str(current);
         }
     }
 
@@ -174,5 +174,33 @@ mod tests {
             converted,
             Cow::Owned(String::from("\r\nfoo\r\nbar\r\n")) as Cow<str>
         );
+    }
+
+    #[test]
+    fn non_ascii_characters_unix2dos() {
+        assert_eq!(
+            unix2dos("Zażółć\ngęślą\njaźń\n"),
+            "Zażółć\r\ngęślą\r\njaźń\r\n"
+        );
+    }
+
+    #[test]
+    fn non_ascii_characters_dos2unix() {
+        assert_eq!(
+            dos2unix("Zażółć\r\ngęślą\r\njaźń\r\n"),
+            "Zażółć\ngęślą\njaźń\n"
+        );
+    }
+
+    #[test]
+    // https://github.com/spitfire05/rnc/issues/14
+    fn panics_in_0_2_1_unix2dos() {
+        let _ = unix2dos("ä\n");
+    }
+
+    #[test]
+    // https://github.com/spitfire05/rnc/issues/14
+    fn panics_in_0_2_1_dos2unix() {
+        let _ = dos2unix("ä\r\n");
     }
 }
