@@ -18,18 +18,13 @@ use unicode_segmentation::UnicodeSegmentation;
 ///
 /// # Examples
 /// ```
-/// use newline_converter::dos2unix;
-/// assert_eq!(dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
-///
-/// // lone CR characters won't be removed:
-/// assert_eq!(dos2unix("\r\nfoo\rbar\r\n"), "\nfoo\rbar\n");
+/// assert_eq!(newline_converter::dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
 /// ```
 ///
 /// Lone `\r` bytes will be preserved:
 /// ```
-/// use newline_converter::dos2unix;
 ///  assert_eq!(
-///    dos2unix("\nfoo\rbar\r\n"),
+///    newline_converter::dos2unix("\nfoo\rbar\r\n"),
 ///    "\nfoo\rbar\n"
 ///  );
 /// ```
@@ -77,11 +72,12 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 ///
 /// # Examples
 /// ```
-/// use newline_converter::unix2dos;
-/// assert_eq!(unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// assert_eq!(newline_converter::unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// ```
 ///
-/// // already present DOS line breaks are respected:
-/// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// Already present DOS line breaks are respected:
+/// ```
+/// assert_eq!(newline_converter::unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
 /// ```
 pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut output: Option<String> = None;
