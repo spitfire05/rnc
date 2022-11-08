@@ -1,0 +1,33 @@
+[package]
+name = "newline-converter-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.newline-converter]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "dos2unix"
+path = "fuzz_targets/dos2unix.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "unix2dos"
+path = "fuzz_targets/unix2dos.rs"
+test = false
+doc = false

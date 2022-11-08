@@ -8,6 +8,21 @@
 //! [`unix2dos`]: fn.unix2dos.html
 
 use std::borrow::Cow;
+use unicode_segmentation::UnicodeSegmentation;
+
+#[deny(clippy::unwrap_used)]
+#[deny(clippy::expect_used)]
+
+const UNPACK_MSG: &str = "Grapheme should always be found -- Please file a bug report";
+
+macro_rules! unpack_grapheme {
+    ($x:expr) => {
+        match $x {
+            Some(i) => i,
+            None => unreachable!("{}", UNPACK_MSG),
+        }
+    };
+}
 
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
 ///
@@ -16,34 +31,33 @@ use std::borrow::Cow;
 ///
 /// # Examples
 /// ```
-/// use newline_converter::dos2unix;
-/// assert_eq!(dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
-///
-/// // lone CR characters won't be removed:
-/// assert_eq!(dos2unix("\r\nfoo\rbar\r\n"), "\nfoo\rbar\n");
+/// assert_eq!(newline_converter::dos2unix("\r\nfoo\r\nbar\r\n"), "\nfoo\nbar\n");
 /// ```
 ///
 /// Lone `\r` bytes will be preserved:
 /// ```
-/// use newline_converter::dos2unix;
 ///  assert_eq!(
-///    dos2unix("\nfoo\rbar\r\n"),
+///    newline_converter::dos2unix("\nfoo\rbar\r\n"),
 ///    "\nfoo\rbar\n"
 ///  );
 /// ```
 pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
-    let mut iter = input.as_ref().chars().enumerate().peekable();
+    let mut iter = input.as_ref().chars().peekable();
 
     let input = input.as_ref();
     let mut output: Option<String> = None;
 
-    while let Some((i, current)) = iter.next() {
+    while let Some(current) = iter.next() {
         if '\r' == current {
-            if let Some((_, '\n')) = iter.peek() {
+            if let Some('\n') = iter.peek() {
                 // drop it
                 if output.is_none() {
                     let n = input.chars().filter(|x| *x == '\r').count();
                     let mut buffer = String::with_capacity(input.len() - n);
+                    let i = unpack_grapheme!(input
+                        .grapheme_indices(true)
+                        .find(|(_, x)| *x == "\r\n")
+                        .map(|(i, _)| i));
                     let (past, _) = input.split_at(i);
                     buffer.push_str(past);
                     output = Some(buffer);
@@ -70,19 +84,19 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 ///
 /// # Examples
 /// ```
-/// use newline_converter::unix2dos;
-/// assert_eq!(unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// assert_eq!(newline_converter::unix2dos("\nfoo\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// ```
 ///
-/// // already present DOS line breaks are respected:
-/// assert_eq!(unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
+/// Already present DOS line breaks are respected:
+/// ```
+/// assert_eq!(newline_converter::unix2dos("\nfoo\r\nbar\n"), "\r\nfoo\r\nbar\r\n");
 /// ```
 pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     let mut output: Option<String> = None;
     let mut last_char: Option<char> = None;
 
     let input = input.as_ref();
-    let iter = input.chars().enumerate();
-    for (i, current) in iter {
+    for (i, current) in input.chars().enumerate() {
         if '\n' == current
             && (i == 0
                 || match last_char {
@@ -93,6 +107,10 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
+                let i = unpack_grapheme!(input
+                    .grapheme_indices(true)
+                    .find(|(_, x)| *x == "\n")
+                    .map(|(i, _)| i));
                 let (past, _) = input.split_at(i);
                 buffer.push_str(past);
                 output = Some(buffer);
@@ -174,5 +192,33 @@ mod tests {
             converted,
             Cow::Owned(String::from("\r\nfoo\r\nbar\r\n")) as Cow<str>
         );
+    }
+
+    #[test]
+    fn non_ascii_characters_unix2dos() {
+        assert_eq!(
+            unix2dos("Zażółć\ngęślą\njaźń\n"),
+            "Zażółć\r\ngęślą\r\njaźń\r\n"
+        );
+    }
+
+    #[test]
+    fn non_ascii_characters_dos2unix() {
+        assert_eq!(
+            dos2unix("Zażółć\r\ngęślą\r\njaźń\r\n"),
+            "Zażółć\ngęślą\njaźń\n"
+        );
+    }
+
+    #[test]
+    // https://github.com/spitfire05/rnc/issues/14
+    fn panics_in_0_2_1_unix2dos() {
+        assert_eq!(unix2dos("ä\n"), "ä\r\n");
+    }
+
+    #[test]
+    // https://github.com/spitfire05/rnc/issues/14
+    fn panics_in_0_2_1_dos2unix() {
+        assert_eq!(dos2unix("ä\r\n"), "ä\n");
     }
 }
