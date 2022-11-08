@@ -8,8 +8,21 @@
 //! [`unix2dos`]: fn.unix2dos.html
 
 use std::borrow::Cow;
-
 use unicode_segmentation::UnicodeSegmentation;
+
+#[deny(clippy::unwrap_used)]
+#[deny(clippy::expect_used)]
+
+const UNPACK_MSG: &str = "Grapheme should always be found -- Please file a bug report";
+
+macro_rules! unpack_grapheme {
+    ($x:expr) => {
+        match $x {
+            Some(i) => i,
+            None => unreachable!("{}", UNPACK_MSG),
+        }
+    };
+}
 
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
 ///
@@ -41,11 +54,10 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                 if output.is_none() {
                     let n = input.chars().filter(|x| *x == '\r').count();
                     let mut buffer = String::with_capacity(input.len() - n);
-                    let i = input
+                    let i = unpack_grapheme!(input
                         .grapheme_indices(true)
                         .find(|(_, x)| *x == "\r\n")
-                        .map(|(i, _)| i)
-                        .unwrap();
+                        .map(|(i, _)| i));
                     let (past, _) = input.split_at(i);
                     buffer.push_str(past);
                     output = Some(buffer);
@@ -95,11 +107,10 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
-                let i = input
+                let i = unpack_grapheme!(input
                     .grapheme_indices(true)
                     .find(|(_, x)| *x == "\n")
-                    .map(|(i, _)| i)
-                    .unwrap();
+                    .map(|(i, _)| i));
                 let (past, _) = input.split_at(i);
                 buffer.push_str(past);
                 output = Some(buffer);
