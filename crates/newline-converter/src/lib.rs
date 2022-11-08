@@ -213,12 +213,12 @@ mod tests {
     #[test]
     // https://github.com/spitfire05/rnc/issues/14
     fn panics_in_0_2_1_unix2dos() {
-        let _ = unix2dos("ä\n");
+        assert_eq!(unix2dos("ä\n"), "ä\r\n");
     }
 
     #[test]
     // https://github.com/spitfire05/rnc/issues/14
     fn panics_in_0_2_1_dos2unix() {
-        let _ = dos2unix("ä\r\n");
+        assert_eq!(dos2unix("ä\r\n"), "ä\n");
     }
 }
