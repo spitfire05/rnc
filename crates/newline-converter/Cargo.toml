@@ -8,7 +8,7 @@ description = "Newline byte converter library"
 repository = "https://github.com/spitfire05/rnc/tree/master/crates/newline-converter"
 readme = "README.md"
 keywords = ["newline", "linebreak", "conversion"]
-categories = ["encoding"]
+categories = ["encoding", "text-processing"]
 
 [dependencies]
 unicode-segmentation = "1.10"
