@@ -7,11 +7,11 @@
 //! [`dos2unix`]: fn.dos2unix.html
 //! [`unix2dos`]: fn.unix2dos.html
 
+#![deny(clippy::unwrap_used)]
+#![deny(clippy::expect_used)]
+
 use std::borrow::Cow;
 use unicode_segmentation::UnicodeSegmentation;
-
-#[deny(clippy::unwrap_used)]
-#[deny(clippy::expect_used)]
 
 const UNPACK_MSG: &str = "Grapheme should always be found -- Please file a bug report";
 
@@ -65,8 +65,8 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                 continue;
             }
         }
-        if output.is_some() {
-            output.as_mut().unwrap().push(current);
+        if let Some(o) = output.as_mut() {
+            o.push(current)
         }
     }
 
@@ -115,7 +115,10 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                 buffer.push_str(past);
                 output = Some(buffer);
             }
-            output.as_mut().unwrap().push('\r');
+            match output.as_mut() {
+                Some(o) => o.push('\r'),
+                None => unreachable!(),
+            }
         }
         last_char = Some(current);
 
@@ -223,6 +226,16 @@ mod tests {
         assert_eq!(dos2unix("ä\r\n"), "ä\n");
     }
 
+    #[test]
+    fn just_linebreak_dos2unix() {
+        assert_eq!(dos2unix("\r\n"), "\n");
+    }
+
+    #[test]
+    fn just_linebreak_unix2dos() {
+        assert_eq!(unix2dos("\n"), "\r\n");
+    }
+
     quickcheck! {
         fn dos_unix_dos(data: String) -> bool {
             data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data))
@@ -234,6 +247,14 @@ mod tests {
 
         fn unix_contains_no_crlf(data: String) -> bool {
             !dos2unix(&data).contains("\r\n")
+        }
+
+        fn dos_has_no_lf_without_cr(data: String) -> bool {
+            let dos = unix2dos(&data);
+            let crlf = dos.graphemes(true).filter(|x| *x == "\r\n").count();
+            let lf = dos.chars().filter(|x| *x == '\n').count();
+
+            lf == crlf
         }
     }
 }
