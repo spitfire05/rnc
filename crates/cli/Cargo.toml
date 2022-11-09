@@ -1,6 +1,6 @@
 [package]
 name = "rust-newline-converter-cli"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Michal Borejszo <michael.borejszo@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -15,7 +15,7 @@ name = "rnc"
 path = "src/main.rs"
 
 [dependencies]
-newline-converter = { version = "0.2.0", path = "../newline-converter" }
+newline-converter = { version = "0.2.2", path = "../newline-converter" }
 clap = "2.33.1"
 content_inspector = "0.2.4"
 encoding = "0.2"
