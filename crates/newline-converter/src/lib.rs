@@ -133,6 +133,7 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use quickcheck::quickcheck;
 
     #[test]
     fn middle() {
@@ -220,5 +221,19 @@ mod tests {
     // https://github.com/spitfire05/rnc/issues/14
     fn panics_in_0_2_1_dos2unix() {
         assert_eq!(dos2unix("ä\r\n"), "ä\n");
+    }
+
+    quickcheck! {
+        fn dos_unix_dos(data: String) -> bool {
+            data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data))
+        }
+
+        fn unix_dos_unix(data: String) -> bool {
+            data.replace("\r\n", "\n") == dos2unix(&unix2dos(&data))
+        }
+
+        fn unix_contains_no_crlf(data: String) -> bool {
+            !dos2unix(&data).contains("\r\n")
+        }
     }
 }
