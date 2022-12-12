@@ -2,16 +2,26 @@
 //!
 //! # Examples
 //!
-//! ```
-//! use newline_converter::NewlineConverterExt;
+//! Using the extension trait:
 //!
+//! ```
+//! use newline_converter::StrExt;
 //! assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
 //! ```
 //!
 //! ```
-//! use newline_converter::NewlineConverterExt;
-//!
+//! use newline_converter::StrExt;
 //! assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
+//! ```
+//!
+//! Using conversion functions directly:
+//!
+//! ```
+//! assert_eq!("foo\r\nbar", newline_converter::unix2dos("foo\nbar"));
+//! ```
+//!
+//! ```
+//! assert_eq!("foo\nbar", newline_converter::dos2unix("foo\r\nbar"));
 //! ```
 //!
 //! The conversion functions are **lazy** - they don't perform any allocations if the input is already in correct format.
@@ -137,15 +147,29 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 }
 
 /// Extension trait for converting between DOS and UNIX linebreaks.
-pub trait NewlineConverterExt {
+pub trait StrExt {
     /// Converts linebreaks to DOS (`\r\n`). See [`unix2dos`] for more info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use newline_converter::StrExt;
+    /// assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
+    /// ```
     fn to_dos(&self) -> Cow<str>;
 
     /// Converts linebreaks to UNIX (`\n`). See [`dos2unix`] for more info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use newline_converter::StrExt;
+    /// assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
+    /// ```
     fn to_unix(&self) -> Cow<str>;
 }
 
-impl<T> NewlineConverterExt for T
+impl<T> StrExt for T
 where
     T: AsRef<str>,
 {
