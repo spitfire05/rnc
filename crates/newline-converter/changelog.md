@@ -1,3 +1,6 @@
+# 0.3.0
+- Add extension trait interface.
+
 # 0.2.2
 - Fix panic or undesired behavior when dealing with non-ASCII input.
 
