@@ -1,11 +1,20 @@
 //! A library for newline character converting.
 //!
-//! This crate provides two functions: [`dos2unix`] and [`unix2dos`] that perform the conversion on strings.
+//! # Examples
+//!
+//! ```
+//! use newline_converter::NewlineConverterExt;
+//!
+//! assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
+//! ```
+//!
+//! ```
+//! use newline_converter::NewlineConverterExt;
+//!
+//! assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
+//! ```
 //!
 //! The conversion functions are **lazy** - they don't perform any allocations if the input is already in correct format.
-//!
-//! [`dos2unix`]: fn.dos2unix.html
-//! [`unix2dos`]: fn.unix2dos.html
 
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
