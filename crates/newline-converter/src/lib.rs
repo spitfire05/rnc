@@ -7,6 +7,7 @@
 //! [`dos2unix`]: fn.dos2unix.html
 //! [`unix2dos`]: fn.unix2dos.html
 
+#![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 
@@ -133,10 +134,34 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     }
 }
 
+/// Extension trait for converting between DOS and UNIX linebreaks.
+pub trait NewlineConverterExt {
+    /// Converts linebreaks to DOS (`\r\n`). See [`unix2dos`] for more info.
+    fn to_dos(&self) -> Cow<str>;
+
+    /// Converts linebreaks to UNIX (`\n`). See [`dos2unix`] for more info.
+    fn to_unix(&self) -> Cow<str>;
+}
+
+impl<T> NewlineConverterExt for T
+where
+    T: AsRef<str>,
+{
+    #[inline(always)]
+    fn to_dos(&self) -> Cow<str> {
+        unix2dos(self)
+    }
+
+    #[inline(always)]
+    fn to_unix(&self) -> Cow<str> {
+        dos2unix(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quickcheck::quickcheck;
+    use quickcheck::{quickcheck, TestResult};
 
     #[test]
     fn middle() {
@@ -237,8 +262,12 @@ mod tests {
     }
 
     quickcheck! {
-        fn dos_unix_dos(data: String) -> bool {
-            data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data))
+        fn dos_unix_dos(data: String) -> TestResult {
+            if data.contains("\r\n") {
+                return TestResult::discard();
+            }
+
+            TestResult::from_bool(data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data)))
         }
 
         fn unix_dos_unix(data: String) -> bool {
@@ -255,6 +284,14 @@ mod tests {
             let lf = dos.chars().filter(|x| *x == '\n').count();
 
             lf == crlf
+        }
+
+        fn to_unix_equals_dos2unix(data: String) -> bool {
+            dos2unix(&data) == data.to_unix()
+        }
+
+        fn to_dos_equals_unix2dos(data: String) -> bool {
+            unix2dos(&data) == data.to_dos()
         }
     }
 }
