@@ -5,12 +5,12 @@
 //! Using the extension trait:
 //!
 //! ```
-//! use newline_converter::StrExt;
+//! use newline_converter::AsRefStrExt;
 //! assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
 //! ```
 //!
 //! ```
-//! use newline_converter::StrExt;
+//! use newline_converter::AsRefStrExt;
 //! assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
 //! ```
 //!
@@ -147,13 +147,13 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
 }
 
 /// Extension trait for converting between DOS and UNIX linebreaks.
-pub trait StrExt {
+pub trait AsRefStrExt {
     /// Converts linebreaks to DOS (`\r\n`). See [`unix2dos`] for more info.
     ///
     /// # Examples
     ///
     /// ```
-    /// use newline_converter::StrExt;
+    /// use newline_converter::AsRefStrExt;
     /// assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
     /// ```
     fn to_dos(&self) -> Cow<str>;
@@ -163,13 +163,13 @@ pub trait StrExt {
     /// # Examples
     ///
     /// ```
-    /// use newline_converter::StrExt;
+    /// use newline_converter::AsRefStrExt;
     /// assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
     /// ```
     fn to_unix(&self) -> Cow<str>;
 }
 
-impl<T> StrExt for T
+impl<T> AsRefStrExt for T
 where
     T: AsRef<str>,
 {
@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     fn middle() {
-        assert_eq!(dos2unix("foo\r\nbar"), "foo\nbar");
+        assert_eq!(dos2unix("foo\r\nbar"), "foo\nbar".to_dos().to_unix());
         assert_eq!(unix2dos("foo\nbar"), "foo\r\nbar");
     }
 
