@@ -78,6 +78,7 @@ fn main() -> Result<(), RncError> {
         _ => UTF_8 as EncodingRef,
     });
 
+    #[allow(clippy::type_complexity)]
     let conv: Box<dyn Fn(&str) -> Cow<str>> = if matches.is_present("dos2unix") {
         Box::new(dos2unix)
     } else if matches.is_present("unix2dos") {
