@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{crate_version, App, Arg};
 use encoding::all::{UTF_16BE, UTF_16LE, UTF_8};
 use encoding::{decode, DecoderTrap, EncoderTrap, EncodingRef};
 use log::{debug, info};
@@ -14,7 +14,7 @@ use errors::RncError;
 
 fn main() -> Result<(), RncError> {
     let matches = App::new("rnc")
-        .version("0.1.1")
+        .version(crate_version!())
         .about("Newline byte(s) converter")
         .arg(Arg::with_name("FILE")
             .help("Sets the input file to use. If not set, processes stdin to stdout")
