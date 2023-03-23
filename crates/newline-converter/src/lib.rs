@@ -68,8 +68,7 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                     let i = input
                         .grapheme_indices(true)
                         .find(|(_, x)| *x == "\r\n")
-                        .map(|(i, _)| i)
-                        .unwrap_or_else(|| unreachable!("{}", UNPACK_MSG));
+                        .map_or_else(|| unreachable!("{}", UNPACK_MSG), |(i, _)| i);
                     let (past, _) = input.split_at(i);
                     buffer.push_str(past);
                     output = Some(buffer);
@@ -78,7 +77,7 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
             }
         }
         if let Some(o) = output.as_mut() {
-            o.push(current)
+            o.push(current);
         }
     }
 
@@ -122,8 +121,7 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                 let i = input
                     .grapheme_indices(true)
                     .find(|(_, x)| *x == "\n")
-                    .map(|(i, _)| i)
-                    .unwrap_or_else(|| unreachable!("{}", UNPACK_MSG));
+                    .map_or_else(|| unreachable!("{}", UNPACK_MSG), |(i, _)| i);
                 let (past, _) = input.split_at(i);
                 buffer.push_str(past);
                 output = Some(buffer);
