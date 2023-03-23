@@ -1,12 +1,32 @@
 //! A library for newline character converting.
 //!
-//! This crate provides two functions: [`dos2unix`] and [`unix2dos`] that perform the conversion on strings.
+//! # Examples
+//!
+//! Using the extension trait:
+//!
+//! ```
+//! use newline_converter::AsRefStrExt;
+//! assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
+//! ```
+//!
+//! ```
+//! use newline_converter::AsRefStrExt;
+//! assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
+//! ```
+//!
+//! Using conversion functions directly:
+//!
+//! ```
+//! assert_eq!("foo\r\nbar", newline_converter::unix2dos("foo\nbar"));
+//! ```
+//!
+//! ```
+//! assert_eq!("foo\nbar", newline_converter::dos2unix("foo\r\nbar"));
+//! ```
 //!
 //! The conversion functions are **lazy** - they don't perform any allocations if the input is already in correct format.
-//!
-//! [`dos2unix`]: fn.dos2unix.html
-//! [`unix2dos`]: fn.unix2dos.html
 
+#![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 
@@ -14,15 +34,6 @@ use std::borrow::Cow;
 use unicode_segmentation::UnicodeSegmentation;
 
 const UNPACK_MSG: &str = "Grapheme should always be found -- Please file a bug report";
-
-macro_rules! unpack_grapheme {
-    ($x:expr) => {
-        match $x {
-            Some(i) => i,
-            None => unreachable!("{}", UNPACK_MSG),
-        }
-    };
-}
 
 /// Converts DOS-style line endings (`\r\n`) to UNIX-style (`\n`).
 ///
@@ -54,10 +65,10 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
                 if output.is_none() {
                     let n = input.chars().filter(|x| *x == '\r').count();
                     let mut buffer = String::with_capacity(input.len() - n);
-                    let i = unpack_grapheme!(input
+                    let i = input
                         .grapheme_indices(true)
                         .find(|(_, x)| *x == "\r\n")
-                        .map(|(i, _)| i));
+                        .map_or_else(|| unreachable!("{}", UNPACK_MSG), |(i, _)| i);
                     let (past, _) = input.split_at(i);
                     buffer.push_str(past);
                     output = Some(buffer);
@@ -66,7 +77,7 @@ pub fn dos2unix<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
             }
         }
         if let Some(o) = output.as_mut() {
-            o.push(current)
+            o.push(current);
         }
     }
 
@@ -107,10 +118,10 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
             if output.is_none() {
                 let n = input.chars().filter(|x| *x == '\n').count();
                 let mut buffer = String::with_capacity(input.len() + n);
-                let i = unpack_grapheme!(input
+                let i = input
                     .grapheme_indices(true)
                     .find(|(_, x)| *x == "\n")
-                    .map(|(i, _)| i));
+                    .map_or_else(|| unreachable!("{}", UNPACK_MSG), |(i, _)| i);
                 let (past, _) = input.split_at(i);
                 buffer.push_str(past);
                 output = Some(buffer);
@@ -133,14 +144,50 @@ pub fn unix2dos<T: AsRef<str> + ?Sized>(input: &T) -> Cow<str> {
     }
 }
 
+/// Extension trait for converting between DOS and UNIX linebreaks.
+pub trait AsRefStrExt {
+    /// Converts linebreaks to DOS (`\r\n`). See [`unix2dos`] for more info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use newline_converter::AsRefStrExt;
+    /// assert_eq!("foo\r\nbar", "foo\nbar".to_dos());
+    /// ```
+    fn to_dos(&self) -> Cow<str>;
+
+    /// Converts linebreaks to UNIX (`\n`). See [`dos2unix`] for more info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use newline_converter::AsRefStrExt;
+    /// assert_eq!("foo\nbar", "foo\r\nbar".to_unix());
+    /// ```
+    fn to_unix(&self) -> Cow<str>;
+}
+
+impl<T> AsRefStrExt for T
+where
+    T: AsRef<str>,
+{
+    fn to_dos(&self) -> Cow<str> {
+        unix2dos(self)
+    }
+
+    fn to_unix(&self) -> Cow<str> {
+        dos2unix(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quickcheck::quickcheck;
+    use quickcheck::{quickcheck, TestResult};
 
     #[test]
     fn middle() {
-        assert_eq!(dos2unix("foo\r\nbar"), "foo\nbar");
+        assert_eq!(dos2unix("foo\r\nbar"), "foo\nbar".to_dos().to_unix());
         assert_eq!(unix2dos("foo\nbar"), "foo\r\nbar");
     }
 
@@ -237,8 +284,12 @@ mod tests {
     }
 
     quickcheck! {
-        fn dos_unix_dos(data: String) -> bool {
-            data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data))
+        fn dos_unix_dos(data: String) -> TestResult {
+            if data.contains("\r\n") {
+                return TestResult::discard();
+            }
+
+            TestResult::from_bool(data.replace('\n', "\r\n") == unix2dos(&dos2unix(&data)))
         }
 
         fn unix_dos_unix(data: String) -> bool {
@@ -255,6 +306,14 @@ mod tests {
             let lf = dos.chars().filter(|x| *x == '\n').count();
 
             lf == crlf
+        }
+
+        fn to_unix_equals_dos2unix(data: String) -> bool {
+            dos2unix(&data) == data.to_unix()
+        }
+
+        fn to_dos_equals_unix2dos(data: String) -> bool {
+            unix2dos(&data) == data.to_dos()
         }
     }
 }
