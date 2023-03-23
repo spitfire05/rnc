@@ -173,12 +173,10 @@ impl<T> AsRefStrExt for T
 where
     T: AsRef<str>,
 {
-    #[inline(always)]
     fn to_dos(&self) -> Cow<str> {
         unix2dos(self)
     }
 
-    #[inline(always)]
     fn to_unix(&self) -> Cow<str> {
         dos2unix(self)
     }
